@@ -20,8 +20,8 @@ import org.apache.logging.log4j.Logger;
 
 import com.digitrinity.model.MessageData;
 import com.digitrinity.parser.dateutil.DateTime;
-import com.digitrinity.parser.util.ConnectionPool;
-import com.digitrinity.parser.util.DataBaseOperation;
+import com.digitrinity.parser.dbutil.ConnectionPool;
+import com.digitrinity.parser.dbutil.DataBaseOperation;
 
 public class ParserThread implements Runnable {
 
@@ -39,33 +39,45 @@ public class ParserThread implements Runnable {
 			logger.debug("Started Processing Data...");
 
 			try {
-				
-				logger.debug("Fetch Sites-------------------");
+
+				int threadCount = Thread.activeCount();
+				if (threadCount > 50) {
+
+					logger.info("Too many active threads in other records. Current count = [" + threadCount + "]. Going to sleep. Will try again after some time.");
+					logger.info("Please check CPU usage. Processing slowing down and creating many threads.");
+					Thread.sleep(5000);
+					continue;
+				}
+
+				logger.debug("Before fetchSites()-------------------");
 				fetchSites();
-				logger.debug(" After Fetch Sites-------------------");
+				logger.debug(" After fetchSites()-------------------");
 
 				if(_deviceFlag) {
 
-					logger.debug("Near FetchRecords-------------------");
+					logger.debug("Before fetchRecords()-------------------");
 					fetchRecords();
-//					logger.trace("Total number of active Threads before sleep = [" + Thread.activeCount() + "]");
-//					Thread.sleep(4000);
-//					logger.trace("Total number of active Threads after sleep = [" + Thread.activeCount() + "]");
+					logger.debug("After fetchRecords()-------------------");
+					logger.trace("Total number of active Threads before sleep = [" + Thread.activeCount() + "]");
+					Thread.sleep(4000);
+					logger.trace("Total number of active Threads after sleep = [" + Thread.activeCount() + "]");
 				}
-				//				else {
-				//
-				//					Thread.sleep(1000);
-				//				}
+				else {
+					Thread.sleep(1000);
+				}
 
 			} catch (SQLException e1) {
+				logger.error ("Failed to process", e1);
 				e1.printStackTrace();
 			} catch (Exception e) {
+				logger.error ("Failed to process", e);
 				e.printStackTrace();
 			}
 
 			try {
 				Thread.sleep(5000);
 			} catch (InterruptedException e) {
+				logger.error ("Failed to process", e);
 				e.printStackTrace();
 			}
 		}
@@ -77,7 +89,7 @@ public class ParserThread implements Runnable {
 		logger.debug("Inside fetchSites...");
 		_deviceMap=null;
 		_deviceMap=new HashMap();
-		
+
 		Connection connObj = null;
 		PreparedStatement pstmtObj = null;
 		ConnectionPool jdbcObj = new ConnectionPool();
@@ -95,11 +107,10 @@ public class ParserThread implements Runnable {
 			jdbcObj.printDbStatus();
 
 			// Performing Database Operation!
-			System.out.println("\n=====Making A New Connection Object For Db Transaction=====\n");
+			logger.debug("\n=====Making A New Connection Object For Db Transaction=====\n");
 			connObj = dataSource.getConnection();
 			jdbcObj.printDbStatus(); 
 			pstmtObj = connObj.prepareStatement("Select distinct(smSiteCode) from incomingdata  where Msgstatus=10 and iPort ="+port+" LIMIT 9");
-			logger.debug("pstmtObj distinct query----------------"+pstmtObj);
 			ResultSet rsObj = pstmtObj.executeQuery();
 
 			while(rsObj.next()){
@@ -115,7 +126,7 @@ public class ParserThread implements Runnable {
 			connObj.close();
 			pstmtObj.close();
 
-			System.out.println("\n=====Releasing Connection Object To Pool=====\n");            
+			logger.debug("\n=====Releasing Connection Object To Pool=====\n");            
 		} catch(Exception sqlException) {
 			sqlException.printStackTrace();
 		} finally {
@@ -125,11 +136,12 @@ public class ParserThread implements Runnable {
 					pstmtObj.close();
 					pstmtObj = null;
 				}
+				input.close();
 			} catch(Exception sqlException) {
+				logger.error ("Failed to process", sqlException);
 				sqlException.printStackTrace();
 			}
 		}
-		
 		jdbcObj.printDbStatus();
 	}
 
@@ -171,14 +183,12 @@ public class ParserThread implements Runnable {
 			}
 		}
 		ParserThread._deviceFlag = false;
-
 	}  
 }
 
 class Parser extends ParserThread implements Runnable {
 
 	String smSiteCode;
-
 	static Logger logger = LogManager.getLogger(Parser.class.getName());
 
 	Parser(String dvUniqueID){
@@ -191,41 +201,36 @@ class Parser extends ParserThread implements Runnable {
 	 * 
 	 */
 	public void run(){
-
 		try {
 
 			long start = DateTime.getCurrentTimeMillis();
-			assembelRecord(smSiteCode);
+			assembelRecordPerSite(smSiteCode);
 			long end = DateTime.getCurrentTimeMillis();			
-			logger.debug("Total time parseRecord_itoc " + (end-start));
+			logger.debug("Total time to parse: " + (end-start));
 			logger.info("Completed processing for " + smSiteCode);
 
 		} catch (Throwable e) {
-
 			logger.error ("Failed to process", e);
 			e.printStackTrace();
 		}
 	}
 
-	protected void assembelRecord(String smSiteCode) throws Exception {
+	protected void assembelRecordPerSite(String smSiteCode) throws Exception {
 
-		logger.info("Inside assembelRecord " + smSiteCode);
-		
+		logger.info("Inside assembelRecord--------------- ");
+
 		DataBaseOperation DataBaseOperation = new DataBaseOperation();
 		ArrayList<MessageData> msgList = DataBaseOperation.fetchDeviceRawData(smSiteCode);
 
-		logger.info("msgList.size() " + msgList.size());
-		
 		for (int i=0; i< msgList.size(); i++) {
 
-			System.out.println("Message Processed");
 			MessageData msgdata = msgList.get(i);
-			ParseRecordThread ParseRecordThread = new ParseRecordThread();
-			ParseRecordThread.parseRecord(msgdata.getDeviceData(),msgdata.getMsgId());
+			DataProcessor ParseRecordThread = new DataProcessor();
+			ParseRecordThread.parseData(msgdata.getDeviceData(),msgdata.getMsgId());
 			String siteId = msgdata.getDeviceData().substring(5, 14);
 			DataBaseOperation.changeStatusAfterProcess(msgdata.getMsgId(),siteId);
 		}
-		
+
 		try {
 
 			synchronized(ParserThread._recordProcessMap) {
@@ -233,15 +238,12 @@ class Parser extends ParserThread implements Runnable {
 				_recordProcessMap.remove(smSiteCode+"");
 				logger.info("Removed from _recordProcessMap " + smSiteCode);
 			}
-			
+
 			logger.info("After Removing _recordProcessMap " + _recordProcessMap);
-			
-			
 		} catch (ConcurrentModificationException cmex) {
 
 			logger.error("At parseRecord_itoc - Concurrent Modificaton occured for Device ----------" + smSiteCode, cmex);
 			cmex.printStackTrace();
 		}
-
 	}
 }

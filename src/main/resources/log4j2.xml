@@ -1,27 +1,33 @@
-<Configuration status="warn">
-    <Appenders>
-        <Console name="LogToConsole" target="SYSTEM_OUT">
-            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
-        </Console>
-        <RollingFile name="LogToRollingFile" fileName="logs/app.log"
-                    filePattern="logs/$${date:yyyy-MM}/app-%d{MM-dd-yyyy}-%i.log.gz">
+<Configuration status="warn" monitorInterval="5">
+	<Properties>
+		<Property name="log-path">./logs</Property>
+	</Properties>
+	<Appenders>
+		<Console name="Console" target="SYSTEM_OUT">
 			<PatternLayout>
-				<Pattern>%d %p %c{1.} [%t] %m%n</Pattern>
+				<pattern>[%-5level] %d{dd-MMM-yyyy@HH.mm.ss} %c{1} [%t] - %msg%n</pattern>
+			</PatternLayout>
+		</Console>
+		<RollingFile name="parser-log" fileName="${log-path}/parser.log"
+			filePattern="${log-path}/parser-%d{yyyy-MM-dd}.%i.log">
+			<PatternLayout>
+				<pattern>[%-5level]%d{yy-MM-dd HH:mm:ss.SSS} %c{1} [%t] - %msg%n</pattern>
 			</PatternLayout>
 			<Policies>
-				<TimeBasedTriggeringPolicy />
-				<SizeBasedTriggeringPolicy size="10 MB"/>
+				<TimeBasedTriggeringPolicy interval="1"
+					modulate="true" />
+				<SizeBasedTriggeringPolicy size="50mb" />
 			</Policies>
+			<DefaultRolloverStrategy compressionLevel="0"
+				max="5" />
 		</RollingFile>
-    </Appenders>
-	
-    <Loggers>
-        <!-- avoid duplicated logs with additivity=false -->
-        <Logger name="com.demo.parser.ParserMain" level="debug" additivity="false">
-            <AppenderRef ref="LogToRollingFile"/>
-        </Logger>
-        <Root level="debug">
-            <AppenderRef ref="LogToConsole"/>
-        </Root>
-    </Loggers>
+	</Appenders>
+	<Loggers>
+		<Logger name="com.digitrinity" level="debug">
+			<appender-ref ref="parser-log" level="debug" />
+		</Logger>
+		<Root level="debug">
+			<appender-ref ref="Console" level="debug"/>
+		</Root>
+	</Loggers>
 </Configuration>

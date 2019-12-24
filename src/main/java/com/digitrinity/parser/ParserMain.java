@@ -10,7 +10,7 @@ public class ParserMain {
 	
     public static void main( String[] args ) {
     	
-    	logger.info("Main Thread Started!!!!!!!!!!!!");
+    	logger.info("!!!!!!!Main Thread Started!!!!!!!!!!!!");
     	Thread parseRecordsThread=new Thread(new ParserThread()); 
 		parseRecordsThread.start();
     }

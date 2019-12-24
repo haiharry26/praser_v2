@@ -1,6 +1,5 @@
 package com.digitrinity.parser.parserthread;
 
-import java.math.BigInteger;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -9,12 +8,17 @@ import java.util.HashMap;
 
 import javax.sql.DataSource;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import com.digitrinity.parser.dbutil.ConnectionPool;
 import com.digitrinity.parser.util.AlarmUtil;
-import com.digitrinity.parser.util.ConnectionPool;
 
-public class AlarmProcessing {
+public class AlarmProcessor {
 
-	public void processAlarm(String alarmString, String siteId, long _recordtime, String statusString, String commStatus, int smSiteId, String sysOutLoadStatus,
+	private static Logger logger = LogManager.getLogger(AlarmProcessor.class.getName());
+
+	public void processAlarm(String alarmString, String siteCode, long _recordtime, String statusString, String commStatus, int smSiteId, String sysOutLoadStatus,
 			String solarStatusMod1, String solarStatusMod2, String solarStatusMod3, String solarStatusMod4, String solarStatusMod5, String solarStatusMod6, 
 			String solarStatusMod7, String solarStatusMod8, String solarStatusMod9, String solarStatusMod10, String solarStatusMod11, String solarStatusMod12, 
 			String solarStatusMod13, String solarStatusMod14, String solarStatusMod15, String solarStatusMod16, String solarStatusMod17, String solarStatusMod18,
@@ -26,1233 +30,563 @@ public class AlarmProcessing {
 			,String liBattStatus12,String liBattStatus13,String liBattStatus14,String liBattStatus15,String liBattStatus16, String liBattStatus17,String liBattStatus18
 			,String liBattStatus19,String liBattStatus20, long dbCreationTime, Date hpDate) {
 
+		AlarmUtil alarmUtil = new AlarmUtil();
+
 		/*Alarm String*/
-		String preBin = new BigInteger(alarmString, 16).toString(2);
-		Integer length = preBin.length();
-		if (length < 8) {
-			for (int i = 0; i < 8 - length; i++) {
-				preBin = "0" + preBin;
-			}
-		}
-
-		if(preBin.length()!=64) {
-
-			int need = 64-preBin.length();
-			for (int j = 1; j<=need; j++) {
-				preBin = "0" + preBin;
-			}
-		}
-		char[] alarmCharArray = new char[64];
-		if(alarmString.equalsIgnoreCase("0000000000000000")) {
-
-			alarmCharArray = "0000000000000000000000000000000000000000000000000000000000000000".toCharArray();
-		} else {
-			alarmCharArray = preBin.toCharArray();
-		}
-
+		char[] alarmStringArray = alarmUtil.processAlarmString(alarmString);
 		/*Status String*/
-		String statusPrebin = new BigInteger(statusString, 16).toString(2);
-		Integer statusLength = statusPrebin.length();
-		if (statusLength < 8) {
-			for (int i = 0; i < 8 - statusLength; i++) {
-				statusPrebin = "0" + statusPrebin;
-			}
-		}
-
-		if(statusPrebin.length()!=32) {
-
-			int need = 32-statusPrebin.length();
-			for (int j = 1; j<=need; j++) {
-				statusPrebin = "0" + statusPrebin;
-			}
-		}
-		char[] alarmCharArray1 = new char[32];
-		if(statusString.equalsIgnoreCase("00000000")) {
-
-			alarmCharArray1 = "00000000000000000000000000000000".toCharArray();
-		} else {
-			alarmCharArray1 = statusPrebin.toCharArray();
-		}
-
-		/*Comm Status 2 Byte*/
-		String commStatusPrebin = new BigInteger(commStatus, 16).toString(2);
-		Integer commstatusLength = commStatusPrebin.length();
-		if (commstatusLength < 8) {
-			for (int i = 0; i < 8 - commstatusLength; i++) {
-				commStatusPrebin = "0" + commStatusPrebin;
-			}
-		}
-
-		if(commStatusPrebin.length()!=8) {
-
-			int need = 8-commStatusPrebin.length();
-			for (int j = 1; j<=need; j++) {
-				commStatusPrebin = "0" + commStatusPrebin;
-			}
-		}
-		char[] alarmCharArray2 = new char[8];
-		if(commStatus.equalsIgnoreCase("00")) {
-
-			alarmCharArray2 = "00000000".toCharArray();
-		} else {
-			alarmCharArray2 = commStatusPrebin.toCharArray();
-		}
-
+		char[] statusAlarmArray = alarmUtil.processStatusString(statusString);
+		/* Communication Status String*/
+		char[] commStatusAlarmArray = alarmUtil.processCommStatus(commStatus);
 		/*SysOutLoadStatus 4 Byte*/
-
-		String sysOutLoadStatuspreBin = new BigInteger(sysOutLoadStatus, 16).toString(2);
-		Integer sysOutLoadStatuslength = sysOutLoadStatuspreBin.length();
-		if (sysOutLoadStatuslength < 8) {
-			for (int i = 0; i < 8 - sysOutLoadStatuslength; i++) {
-				sysOutLoadStatuspreBin = "0" + sysOutLoadStatuspreBin;
-			}
-		}
-
-		if(sysOutLoadStatuspreBin.length()!=16) {
-
-			int need = 16-sysOutLoadStatuspreBin.length();
-			for (int j = 1; j<=need; j++) {
-				sysOutLoadStatuspreBin = "0" + sysOutLoadStatuspreBin;
-			}
-		}
-		char[] alarmCharArray3 = new char[16];
-		if(sysOutLoadStatus.equalsIgnoreCase("0000")) {
-
-			alarmCharArray3 = "0000000000000000".toCharArray();
-		} else {
-			alarmCharArray3 = sysOutLoadStatuspreBin.toCharArray();
-		}
+		char[] sysOutLoadStatusAlarmArray = alarmUtil.processSysOutLoadStatus(sysOutLoadStatus);
 
 		/* Solar Status Mod 1 2 Byte*/
 
-		String solarStatusMod1preBin = new BigInteger(solarStatusMod1, 16).toString(2);
-		Integer solarStatusMod1length = solarStatusMod1preBin.length();
-		if (solarStatusMod1length < 8) {
-			for (int i = 0; i < 8 - solarStatusMod1length; i++) {
-				solarStatusMod1preBin = "0" + solarStatusMod1preBin;
-			}
-		}
-
-		if(solarStatusMod1preBin.length()!=4) {
-
-			int need = 4-solarStatusMod1preBin.length();
-			for (int j = 1; j<=need; j++) {
-				solarStatusMod1preBin = "0" + solarStatusMod1preBin;
-			}
-		}
-		char[] alarmCharArray4 = new char[8];
-		if(solarStatusMod1.equalsIgnoreCase("00")) {
-
-			alarmCharArray4 = "00000000".toCharArray();
-		} else {
-			alarmCharArray4 = solarStatusMod1preBin.toCharArray();
-		}
-
-
-
-		/* Solar Status Mod 2 2 Byte*/
-
-		String solarStatusMod2preBin = new BigInteger(solarStatusMod2, 16).toString(2);
-		Integer solarStatusMod2length = solarStatusMod2preBin.length();
-		if (solarStatusMod2length < 8) {
-			for (int i = 0; i < 8 - solarStatusMod2length; i++) {
-				solarStatusMod2preBin = "0" + solarStatusMod2preBin;
-			}
-		}
-
-		if(solarStatusMod2preBin.length()!=4) {
-
-			int need = 4-solarStatusMod2preBin.length();
-			for (int j = 1; j<=need; j++) {
-				solarStatusMod2preBin = "0" + solarStatusMod2preBin;
-			}
-		}
-		char[] alarmCharArray5 = new char[8];
-		if(solarStatusMod2.equalsIgnoreCase("00")) {
-
-			alarmCharArray5 = "00000000".toCharArray();
-		} else {
-			alarmCharArray5 = solarStatusMod2preBin.toCharArray();
-		}
-
-		/* Solar Status Mod 3  2 Byte */
-
-		String solarStatusMod3preBin = new BigInteger(solarStatusMod3, 16).toString(2);
-		Integer solarStatusMod3length = solarStatusMod3preBin.length();
-		if (solarStatusMod3length < 8) {
-			for (int i = 0; i < 8 - solarStatusMod3length; i++) {
-				solarStatusMod3preBin = "0" + solarStatusMod3preBin;
-			}
-		}
-
-		if(solarStatusMod3preBin.length()!=4) {
-
-			int need = 4-solarStatusMod3preBin.length();
-			for (int j = 1; j<=need; j++) {
-				solarStatusMod3preBin = "0" + solarStatusMod3preBin;
-			}
-		}
-		char[] alarmCharArray6 = new char[8];
-		if(solarStatusMod3.equalsIgnoreCase("00")) {
-
-			alarmCharArray6 = "00000000".toCharArray();
-		} else {
-			alarmCharArray6 = solarStatusMod3preBin.toCharArray();
-		}      
-
-
-		/* Solar Status Mod 4  2 Byte*/
-
-		String solarStatusMod4preBin = new BigInteger(solarStatusMod4, 16).toString(2);
-		Integer solarStatusMod4length = solarStatusMod4preBin.length();
-		if (solarStatusMod4length < 8) {
-			for (int i = 0; i < 8 - solarStatusMod4length; i++) {
-				solarStatusMod4preBin = "0" + solarStatusMod4preBin;
-			}
-		}
-
-		if(solarStatusMod4preBin.length()!=4) {
-
-			int need = 4-solarStatusMod4preBin.length();
-			for (int j = 1; j<=need; j++) {
-				solarStatusMod4preBin = "0" + solarStatusMod4preBin;
-			}
-		}
-		char[] alarmCharArray7 = new char[8];
-		if(solarStatusMod4.equalsIgnoreCase("00")) {
-
-			alarmCharArray7 = "00000000".toCharArray();
-		} else {
-			alarmCharArray7 = solarStatusMod4preBin.toCharArray();
-		}    
-
-		/* Solar Status Mod 5  2 Byte*/
-
-		String solarStatusMod5preBin = new BigInteger(solarStatusMod5, 16).toString(2);
-		Integer solarStatusMod5length = solarStatusMod5preBin.length();
-		if (solarStatusMod5length < 8) {
-			for (int i = 0; i < 8 - solarStatusMod5length; i++) {
-				solarStatusMod5preBin = "0" + solarStatusMod5preBin;
-			}
-		}
-
-		if(solarStatusMod5preBin.length()!=4) {
-
-			int need = 4-solarStatusMod5preBin.length();
-			for (int j = 1; j<=need; j++) {
-				solarStatusMod5preBin = "0" + solarStatusMod5preBin;
-			}
-		}
-		char[] alarmCharArray8 = new char[8];
-		if(solarStatusMod5.equalsIgnoreCase("00")) {
-
-			alarmCharArray8 = "00000000".toCharArray();
-		} else {
-			alarmCharArray8 = solarStatusMod5preBin.toCharArray();
-		}      
-
-
-		/* Solar Status Mod 6  2 Byte*/
-
-		String solarStatusMod6preBin = new BigInteger(solarStatusMod6, 16).toString(2);
-		Integer solarStatusMod6length = solarStatusMod6preBin.length();
-		if (solarStatusMod6length < 8) {
-			for (int i = 0; i < 8 - solarStatusMod6length; i++) {
-				solarStatusMod6preBin = "0" + solarStatusMod6preBin;
-			}
-		}
-
-		if(solarStatusMod6preBin.length()!=4) {
-
-			int need = 4-solarStatusMod6preBin.length();
-			for (int j = 1; j<=need; j++) {
-				solarStatusMod6preBin = "0" + solarStatusMod6preBin;
-			}
-		}
-		char[] alarmCharArray9 = new char[8];
-		if(solarStatusMod6.equalsIgnoreCase("00")) {
-
-			alarmCharArray9 = "00000000".toCharArray();
-		} else {
-			alarmCharArray9 = solarStatusMod6preBin.toCharArray();
-		}      
-
-		/* Solar Status Mod 7  2 Byte*/
-
-		String solarStatusMod7preBin = new BigInteger(solarStatusMod7, 16).toString(2);
-		Integer solarStatusMod7length = solarStatusMod7preBin.length();
-		if (solarStatusMod7length < 8) {
-			for (int i = 0; i < 8 - solarStatusMod7length; i++) {
-				solarStatusMod7preBin = "0" + solarStatusMod7preBin;
-			}
-		}
-
-		if(solarStatusMod7preBin.length()!=4) {
-
-			int need = 4-solarStatusMod7preBin.length();
-			for (int j = 1; j<=need; j++) {
-				solarStatusMod7preBin = "0" + solarStatusMod7preBin;
-			}
-		}
-		char[] alarmCharArray10 = new char[8];
-		if(solarStatusMod7.equalsIgnoreCase("00")) {
-
-			alarmCharArray10 = "00000000".toCharArray();
-		} else {
-			alarmCharArray10 = solarStatusMod7preBin.toCharArray();
-		}  
-
-
-		/* Solar Status Mod 8  2 Byte*/
-
-		String solarStatusMod8preBin = new BigInteger(solarStatusMod8, 16).toString(2);
-		Integer solarStatusMod8length = solarStatusMod8preBin.length();
-		if (solarStatusMod8length < 8) {
-			for (int i = 0; i < 8 - solarStatusMod8length; i++) {
-				solarStatusMod8preBin = "0" + solarStatusMod8preBin;
-			}
-		}
-
-		if(solarStatusMod8preBin.length()!=4) {
-
-			int need = 4-solarStatusMod8preBin.length();
-			for (int j = 1; j<=need; j++) {
-				solarStatusMod8preBin = "0" + solarStatusMod8preBin;
-			}
-		}
-		char[] alarmCharArray11 = new char[8];
-		if(solarStatusMod8.equalsIgnoreCase("00")) {
-
-			alarmCharArray11 = "00000000".toCharArray();
-		} else {
-			alarmCharArray11 = solarStatusMod8preBin.toCharArray();
-		}    
-
-		/* Solar Status Mod 9  2 Byte*/
-
-		String solarStatusMod9preBin = new BigInteger(solarStatusMod9, 16).toString(2);
-		Integer solarStatusMod9length = solarStatusMod9preBin.length();
-		if (solarStatusMod9length < 8) {
-			for (int i = 0; i < 8 - solarStatusMod9length; i++) {
-				solarStatusMod9preBin = "0" + solarStatusMod9preBin;
-			}
-		}
-
-		if(solarStatusMod9preBin.length()!=4) {
-
-			int need = 4-solarStatusMod9preBin.length();
-			for (int j = 1; j<=need; j++) {
-				solarStatusMod9preBin = "0" + solarStatusMod9preBin;
-			}
-		}
-		char[] alarmCharArray12 = new char[8];
-
-		if(solarStatusMod9.equalsIgnoreCase("00")) {
-
-			alarmCharArray12 = "00000000".toCharArray();
-		} else {
-			alarmCharArray12 = solarStatusMod9preBin.toCharArray();
-		}      
-
-		/* Solar Status Mod 10 2 Byte*/
-
-		String solarStatusMod10preBin = new BigInteger(solarStatusMod10, 16).toString(2);
-		Integer solarStatusMod10length = solarStatusMod10preBin.length();
-		if (solarStatusMod10length < 8) {
-			for (int i = 0; i < 8 - solarStatusMod10length; i++) {
-				solarStatusMod10preBin = "0" + solarStatusMod10preBin;
-			}
-		}
-
-		if(solarStatusMod10preBin.length()!=4) {
-
-			int need = 4-solarStatusMod10preBin.length();
-			for (int j = 1; j<=need; j++) {
-				solarStatusMod10preBin = "0" + solarStatusMod10preBin;
-			}
-		}
-		char[] alarmCharArray13 = new char[8];
-		if(solarStatusMod10.equalsIgnoreCase("00")) {
-
-			alarmCharArray13 = "00000000".toCharArray();
-		} else {
-			alarmCharArray13 = solarStatusMod10preBin.toCharArray();
-		}  
-
-		/* Solar Status Mod 11 2 Byte*/
-
-		String solarStatusMod11preBin = new BigInteger(solarStatusMod11, 16).toString(2);
-		Integer solarStatusMod11length = solarStatusMod11preBin.length();
-		if (solarStatusMod11length < 8) {
-			for (int i = 0; i < 8 - solarStatusMod11length; i++) {
-				solarStatusMod11preBin = "0" + solarStatusMod11preBin;
-			}
-		}
-
-		if(solarStatusMod11preBin.length()!=4) {
-
-			int need = 4-solarStatusMod11preBin.length();
-			for (int j = 1; j<=need; j++) {
-				solarStatusMod11preBin = "0" + solarStatusMod11preBin;
-			}
-		}
-		char[] alarmCharArray14 = new char[8];
-		if(solarStatusMod11.equalsIgnoreCase("00")) {
-
-			alarmCharArray14 = "00000000".toCharArray();
-		} else {
-			alarmCharArray14 = solarStatusMod11preBin.toCharArray();
-		}  
-
-
-		/* Solar Status Mod 12 2 Byte*/
-
-		String solarStatusMod12preBin = new BigInteger(solarStatusMod12, 16).toString(2);
-		Integer solarStatusMod12length = solarStatusMod12preBin.length();
-		if (solarStatusMod12length < 8) {
-			for (int i = 0; i < 8 - solarStatusMod12length; i++) {
-				solarStatusMod12preBin = "0" + solarStatusMod12preBin;
-			}
-		}
-
-		if(solarStatusMod12preBin.length()!=4) {
-
-			int need = 4-solarStatusMod12preBin.length();
-			for (int j = 1; j<=need; j++) {
-				solarStatusMod12preBin = "0" + solarStatusMod12preBin;
-			}
-		}
-		char[] alarmCharArray15 = new char[8];
-		if(solarStatusMod12.equalsIgnoreCase("00")) {
-
-			alarmCharArray15 = "00000000".toCharArray();
-		} else {
-			alarmCharArray15 = solarStatusMod12preBin.toCharArray();
-		}      
-
-		/* Solar Status Mod 13 2 Byte*/
-
-		String solarStatusMod13preBin = new BigInteger(solarStatusMod13, 16).toString(2);
-		Integer solarStatusMod13length = solarStatusMod13preBin.length();
-		if (solarStatusMod13length < 8) {
-			for (int i = 0; i < 8 - solarStatusMod13length; i++) {
-				solarStatusMod13preBin = "0" + solarStatusMod13preBin;
-			}
-		}
-
-		if(solarStatusMod13preBin.length()!=4) {
-
-			int need = 4-solarStatusMod13preBin.length();
-			for (int j = 1; j<=need; j++) {
-				solarStatusMod13preBin = "0" + solarStatusMod13preBin;
-			}
-		}
-		char[] alarmCharArray16 = new char[8];
-		if(solarStatusMod13.equalsIgnoreCase("00")) {
-
-			alarmCharArray16 = "00000000".toCharArray();
-		} else {
-			alarmCharArray16 = solarStatusMod13preBin.toCharArray();
-		}      
-
-		/* Solar Status Mod 14 2 Byte*/
-
-		String solarStatusMod14preBin = new BigInteger(solarStatusMod14, 16).toString(2);
-		Integer solarStatusMod14length = solarStatusMod14preBin.length();
-		if (solarStatusMod14length < 8) {
-			for (int i = 0; i < 8 - solarStatusMod14length; i++) {
-				solarStatusMod14preBin = "0" + solarStatusMod14preBin;
-			}
-		}
-
-		if(solarStatusMod14preBin.length()!=4) {
-
-			int need = 4-solarStatusMod14preBin.length();
-			for (int j = 1; j<=need; j++) {
-				solarStatusMod14preBin = "0" + solarStatusMod14preBin;
-			}
-		}
-		char[] alarmCharArray17 = new char[8];
-		if(solarStatusMod14.equalsIgnoreCase("00")) {
-
-			alarmCharArray17 = "00000000".toCharArray();
-		} else {
-			alarmCharArray17 = solarStatusMod14preBin.toCharArray();
-		}      
-
-		/* Solar Status Mod 15 2 Byte*/
-
-		String solarStatusMod15preBin = new BigInteger(solarStatusMod15, 16).toString(2);
-		Integer solarStatusMod15length = solarStatusMod15preBin.length();
-		if (solarStatusMod15length < 8) {
-			for (int i = 0; i < 8 - solarStatusMod15length; i++) {
-				solarStatusMod15preBin = "0" + solarStatusMod15preBin;
-			}
-		}
-
-		if(solarStatusMod15preBin.length()!=4) {
-
-			int need = 4-solarStatusMod15preBin.length();
-			for (int j = 1; j<=need; j++) {
-				solarStatusMod15preBin = "0" + solarStatusMod15preBin;
-			}
-		}
-		char[] alarmCharArray18 = new char[8];
-		if(solarStatusMod15.equalsIgnoreCase("00")) {
-
-			alarmCharArray18 = "00000000".toCharArray();
-		} else {
-			alarmCharArray18 = solarStatusMod15preBin.toCharArray();
-		}      
-
-		/* Solar Status Mod 16 2 Byte*/
-
-		String solarStatusMod16preBin = new BigInteger(solarStatusMod16, 16).toString(2);
-		Integer solarStatusMod16length = solarStatusMod16preBin.length();
-		if (solarStatusMod16length < 8) {
-			for (int i = 0; i < 8 - solarStatusMod16length; i++) {
-				solarStatusMod16preBin = "0" + solarStatusMod16preBin;
-			}
-		}
-
-		if(solarStatusMod16preBin.length()!=4) {
-
-			int need = 4-solarStatusMod16preBin.length();
-			for (int j = 1; j<=need; j++) {
-				solarStatusMod16preBin = "0" + solarStatusMod16preBin;
-			}
-		}
-		char[] alarmCharArray19 = new char[8];
-		if(solarStatusMod16.equalsIgnoreCase("00")) {
-
-			alarmCharArray19 = "00000000".toCharArray();
-		} else {
-			alarmCharArray19 = solarStatusMod16preBin.toCharArray();
-		}
-
-
-		/* Solar Status Mod 17 2 Byte*/
-
-		String solarStatusMod17preBin = new BigInteger(solarStatusMod17, 16).toString(2);
-		Integer solarStatusMod17length = solarStatusMod17preBin.length();
-		if (solarStatusMod17length < 8) {
-			for (int i = 0; i < 8 - solarStatusMod17length; i++) {
-				solarStatusMod17preBin = "0" + solarStatusMod17preBin;
-			}
-		}
-
-		if(solarStatusMod17preBin.length()!=4) {
-
-			int need = 4-solarStatusMod17preBin.length();
-			for (int j = 1; j<=need; j++) {
-				solarStatusMod17preBin = "0" + solarStatusMod17preBin;
-			}
-		}
-		char[] alarmCharArray20 = new char[8];
-		if(solarStatusMod17.equalsIgnoreCase("00")) {
-
-			alarmCharArray20 = "00000000".toCharArray();
-		} else {
-			alarmCharArray20 = solarStatusMod17preBin.toCharArray();
-		}
-
-		/* Solar Status Mod 18 2 Byte*/
-
-		String solarStatusMod18preBin = new BigInteger(solarStatusMod18, 16).toString(2);
-		Integer solarStatusMod18length = solarStatusMod18preBin.length();
-		if (solarStatusMod18length < 8) {
-			for (int i = 0; i < 8 - solarStatusMod18length; i++) {
-				solarStatusMod18preBin = "0" + solarStatusMod18preBin;
-			}
-		}
-
-		if(solarStatusMod18preBin.length()!=4) {
-
-			int need = 4-solarStatusMod18preBin.length();
-			for (int j = 1; j<=need; j++) {
-				solarStatusMod18preBin = "0" + solarStatusMod18preBin;
-			}
-		}
-		char[] alarmCharArray21 = new char[8];
-		if(solarStatusMod18.equalsIgnoreCase("00")) {
-
-			alarmCharArray21 = "00000000".toCharArray();
-		} else {
-			alarmCharArray21 = solarStatusMod18preBin.toCharArray();
-		}
-
-
-		/* Solar Status Mod 19 2 Byte*/
-
-		String solarStatusMod19preBin = new BigInteger(solarStatusMod19, 16).toString(2);
-		Integer solarStatusMod19length = solarStatusMod19preBin.length();
-		if (solarStatusMod19length < 8) {
-			for (int i = 0; i < 8 - solarStatusMod19length; i++) {
-				solarStatusMod19preBin = "0" + solarStatusMod19preBin;
-			}
-		}
-
-		if(solarStatusMod19preBin.length()!=4) {
-
-			int need = 4-solarStatusMod19preBin.length();
-			for (int j = 1; j<=need; j++) {
-				solarStatusMod19preBin = "0" + solarStatusMod19preBin;
-			}
-		}
-		char[] alarmCharArray22 = new char[8];
-		if(solarStatusMod19.equalsIgnoreCase("00")) {
-
-			alarmCharArray22 = "00000000".toCharArray();
-		} else {
-			alarmCharArray22 = solarStatusMod19preBin.toCharArray();
-		}
-
-		/* Solar Status Mod 20 2 Byte*/
-
-		String solarStatusMod20preBin = new BigInteger(solarStatusMod20, 16).toString(2);
-		Integer solarStatusMod20length = solarStatusMod20preBin.length();
-		if (solarStatusMod20length < 8) {
-			for (int i = 0; i < 8 - solarStatusMod20length; i++) {
-				solarStatusMod20preBin = "0" + solarStatusMod20preBin;
-			}
-		}
-
-		if(solarStatusMod20preBin.length()!=4) {
-
-			int need = 4-solarStatusMod20preBin.length();
-			for (int j = 1; j<=need; j++) {
-				solarStatusMod20preBin = "0" + solarStatusMod20preBin;
-			}
-		}
-		char[] alarmCharArray23 = new char[8];
-		if(solarStatusMod20.equalsIgnoreCase("00")) {
-
-			alarmCharArray23 = "00000000".toCharArray();
-		} else {
-			alarmCharArray23 = solarStatusMod20preBin.toCharArray();
-		}
-
-
-		/* Solar Status Mod 21 2 Byte*/
-
-		String solarStatusMod21preBin = new BigInteger(solarStatusMod21, 16).toString(2);
-		Integer solarStatusMod21length = solarStatusMod21preBin.length();
-		if (solarStatusMod21length < 8) {
-			for (int i = 0; i < 8 - solarStatusMod21length; i++) {
-				solarStatusMod21preBin = "0" + solarStatusMod21preBin;
-			}
-		}
-
-		if(solarStatusMod21preBin.length()!=4) {
-
-			int need = 4-solarStatusMod21preBin.length();
-			for (int j = 1; j<=need; j++) {
-				solarStatusMod21preBin = "0" + solarStatusMod21preBin;
-			}
-		}
-		char[] alarmCharArray24 = new char[8];
-		if(solarStatusMod21.equalsIgnoreCase("00")) {
-
-			alarmCharArray24 = "00000000".toCharArray();
-		} else {
-			alarmCharArray24 = solarStatusMod21preBin.toCharArray();
-		}
-
-		/* Solar Status Mod 22 2 Byte*/
-
-		String solarStatusMod22preBin = new BigInteger(solarStatusMod22, 16).toString(2);
-		Integer solarStatusMod22length = solarStatusMod22preBin.length();
-		if (solarStatusMod22length < 8) {
-			for (int i = 0; i < 8 - solarStatusMod22length; i++) {
-				solarStatusMod22preBin = "0" + solarStatusMod22preBin;
-			}
-		}
-
-		if(solarStatusMod22preBin.length()!=4) {
-
-			int need = 4-solarStatusMod22preBin.length();
-			for (int j = 1; j<=need; j++) {
-				solarStatusMod22preBin = "0" + solarStatusMod22preBin;
-			}
-		}
-		char[] alarmCharArray25 = new char[8];
-		if(solarStatusMod22.equalsIgnoreCase("00")) {
-
-			alarmCharArray25 = "00000000".toCharArray();
-		} else {
-			alarmCharArray25 = solarStatusMod22preBin.toCharArray();
-		}
-
-		/* Solar Status Mod 23 2 Byte*/
-
-		String solarStatusMod23preBin = new BigInteger(solarStatusMod23, 16).toString(2);
-		Integer solarStatusMod23length = solarStatusMod23preBin.length();
-		if (solarStatusMod23length < 8) {
-			for (int i = 0; i < 8 - solarStatusMod23length; i++) {
-				solarStatusMod23preBin = "0" + solarStatusMod23preBin;
-			}
-		}
-
-		if(solarStatusMod23preBin.length()!=4) {
-
-			int need = 4-solarStatusMod23preBin.length();
-			for (int j = 1; j<=need; j++) {
-				solarStatusMod23preBin = "0" + solarStatusMod23preBin;
-			}
-		}
-		char[] alarmCharArray26 = new char[8];
-		if(solarStatusMod23.equalsIgnoreCase("00")) {
-
-			alarmCharArray26 = "00000000".toCharArray();
-		} else {
-			alarmCharArray26 = solarStatusMod23preBin.toCharArray();
-		}
-		/* Solar Status Mod 24 2 Byte*/
-
-		String solarStatusMod24preBin = new BigInteger(solarStatusMod24, 16).toString(2);
-		Integer solarStatusMod24length = solarStatusMod24preBin.length();
-		if (solarStatusMod24length < 8) {
-			for (int i = 0; i < 8 - solarStatusMod24length; i++) {
-				solarStatusMod24preBin = "0" + solarStatusMod24preBin;
-			}
-		}
-
-		if(solarStatusMod24preBin.length()!=4) {
-
-			int need = 4-solarStatusMod24preBin.length();
-			for (int j = 1; j<=need; j++) {
-				solarStatusMod24preBin = "0" + solarStatusMod24preBin;
-			}
-		}
-		char[] alarmCharArray27 = new char[8];
-		if(solarStatusMod24.equalsIgnoreCase("00")) {
-
-			alarmCharArray27 = "00000000".toCharArray();
-		} else {
-			alarmCharArray27 = solarStatusMod24preBin.toCharArray();
-		}
-
-		char[] alarmCharArray28 = processInverterAlarm(invStatus1);
-		char[] alarmCharArray29 = processInverterAlarm(invStatus2);
-		char[] alarmCharArray30 = processInverterAlarm(invStatus3);
-		char[] alarmCharArray31 = processInverterAlarm(invStatus4);
-		char[] alarmCharArray32 = processInverterAlarm(invStatus5);
-		char[] alarmCharArray33 = processInverterAlarm(invStatus6);
-		char[] alarmCharArray34 = processInverterAlarm(invStatus7);
-		char[] alarmCharArray35 = processInverterAlarm(invStatus8);
-		char[] alarmCharArray36 = processInverterAlarm(invStatus9);
-		char[] alarmCharArray37 = processInverterAlarm(invStatus10);
-		char[] alarmCharArray38 = processInverterAlarm(invStatus11);
-		char[] alarmCharArray39 = processInverterAlarm(invStatus12);
-		
-		char[] liAlarm1 = processThirtyTwo(liBattStatus1);
-		char[] liAlarm2 = processThirtyTwo(liBattStatus2);
-		char[] liAlarm3 = processThirtyTwo(liBattStatus3);
-		char[] liAlarm4 = processThirtyTwo(liBattStatus4);
-		char[] liAlarm5 = processThirtyTwo(liBattStatus5);
-		char[] liAlarm6 = processThirtyTwo(liBattStatus6);
-		char[] liAlarm7 = processThirtyTwo(liBattStatus7);
-		char[] liAlarm8 = processThirtyTwo(liBattStatus8);
-		char[] liAlarm9 = processThirtyTwo(liBattStatus9);
-		char[] liAlarm10 = processThirtyTwo(liBattStatus10);
-		char[] liAlarm11 = processThirtyTwo(liBattStatus11);
-		char[] liAlarm12 = processThirtyTwo(liBattStatus12);
-		char[] liAlarm13 = processThirtyTwo(liBattStatus13);
-		char[] liAlarm14 = processThirtyTwo(liBattStatus14);
-		char[] liAlarm15 = processThirtyTwo(liBattStatus15);
-		char[] liAlarm16 = processThirtyTwo(liBattStatus16);
-		char[] liAlarm17 = processThirtyTwo(liBattStatus17);
-		char[] liAlarm18 = processThirtyTwo(liBattStatus18);
-		char[] liAlarm19 = processThirtyTwo(liBattStatus19);
-		char[] liAlarm20 = processThirtyTwo(liBattStatus20);
+		char[] solarStatusMod1AlarmArray = alarmUtil.processTwoByteAlarm(solarStatusMod1);
+		char[] solarStatusMod2AlarmArray = alarmUtil.processTwoByteAlarm(solarStatusMod2);
+		char[] solarStatusMod3AlarmArray = alarmUtil.processTwoByteAlarm(solarStatusMod3);
+		char[] solarStatusMod4AlarmArray = alarmUtil.processTwoByteAlarm(solarStatusMod4);
+		char[] solarStatusMod5AlarmArray = alarmUtil.processTwoByteAlarm(solarStatusMod5);
+		char[] solarStatusMod6AlarmArray = alarmUtil.processTwoByteAlarm(solarStatusMod6);
+		char[] solarStatusMod7AlarmArray = alarmUtil.processTwoByteAlarm(solarStatusMod7);
+		char[] solarStatusMod8AlarmArray = alarmUtil.processTwoByteAlarm(solarStatusMod8);
+		char[] solarStatusMod9AlarmArray = alarmUtil.processTwoByteAlarm(solarStatusMod9);
+		char[] solarStatusMod10AlarmArray = alarmUtil.processTwoByteAlarm(solarStatusMod10);
+		char[] solarStatusMod11AlarmArray = alarmUtil.processTwoByteAlarm(solarStatusMod11);
+		char[] solarStatusMod12AlarmArray = alarmUtil.processTwoByteAlarm(solarStatusMod12);
+		char[] solarStatusMod13AlarmArray = alarmUtil.processTwoByteAlarm(solarStatusMod13);
+		char[] solarStatusMod14AlarmArray = alarmUtil.processTwoByteAlarm(solarStatusMod14);
+		char[] solarStatusMod15AlarmArray = alarmUtil.processTwoByteAlarm(solarStatusMod15);
+		char[] solarStatusMod16AlarmArray = alarmUtil.processTwoByteAlarm(solarStatusMod16);
+		char[] solarStatusMod17AlarmArray = alarmUtil.processTwoByteAlarm(solarStatusMod17);
+		char[] solarStatusMod18AlarmArray = alarmUtil.processTwoByteAlarm(solarStatusMod18);
+		char[] solarStatusMod19AlarmArray = alarmUtil.processTwoByteAlarm(solarStatusMod19);
+		char[] solarStatusMod20AlarmArray = alarmUtil.processTwoByteAlarm(solarStatusMod20);
+		char[] solarStatusMod21AlarmArray = alarmUtil.processTwoByteAlarm(solarStatusMod21);
+		char[] solarStatusMod22AlarmArray = alarmUtil.processTwoByteAlarm(solarStatusMod22);
+		char[] solarStatusMod23AlarmArray = alarmUtil.processTwoByteAlarm(solarStatusMod23);
+		char[] solarStatusMod24AlarmArray = alarmUtil.processTwoByteAlarm(solarStatusMod24);
+
+		/* Inverter Alarms */
+		char[] invStatus1AlarmArray = alarmUtil.processInverterAlarm(invStatus1);
+		char[] invStatus2AlarmArray = alarmUtil.processInverterAlarm(invStatus2);
+		char[] invStatus3AlarmArray = alarmUtil.processInverterAlarm(invStatus3);
+		char[] invStatus4AlarmArray = alarmUtil.processInverterAlarm(invStatus4);
+		char[] invStatus5AlarmArray = alarmUtil.processInverterAlarm(invStatus5);
+		char[] invStatus6AlarmArray = alarmUtil.processInverterAlarm(invStatus6);
+		char[] invStatus7AlarmArray = alarmUtil.processInverterAlarm(invStatus7);
+		char[] invStatus8AlarmArray = alarmUtil.processInverterAlarm(invStatus8);
+		char[] invStatus9AlarmArray = alarmUtil.processInverterAlarm(invStatus9);
+		char[] invStatus10AlarmArray = alarmUtil.processInverterAlarm(invStatus10);
+		char[] invStatus11AlarmArray = alarmUtil.processInverterAlarm(invStatus11);
+		char[] invStatus12AlarmArray = alarmUtil.processInverterAlarm(invStatus12);
+
+		/* Li Alarms*/
+		char[] liAlarm1 = alarmUtil.processThirtyTwo(liBattStatus1);
+		char[] liAlarm2 = alarmUtil.processThirtyTwo(liBattStatus2);
+		char[] liAlarm3 = alarmUtil.processThirtyTwo(liBattStatus3);
+		char[] liAlarm4 = alarmUtil.processThirtyTwo(liBattStatus4);
+		char[] liAlarm5 = alarmUtil.processThirtyTwo(liBattStatus5);
+		char[] liAlarm6 = alarmUtil.processThirtyTwo(liBattStatus6);
+		char[] liAlarm7 = alarmUtil.processThirtyTwo(liBattStatus7);
+		char[] liAlarm8 = alarmUtil.processThirtyTwo(liBattStatus8);
+		char[] liAlarm9 = alarmUtil.processThirtyTwo(liBattStatus9);
+		char[] liAlarm10 = alarmUtil.processThirtyTwo(liBattStatus10);
+		char[] liAlarm11 = alarmUtil.processThirtyTwo(liBattStatus11);
+		char[] liAlarm12 = alarmUtil.processThirtyTwo(liBattStatus12);
+		char[] liAlarm13 = alarmUtil.processThirtyTwo(liBattStatus13);
+		char[] liAlarm14 = alarmUtil.processThirtyTwo(liBattStatus14);
+		char[] liAlarm15 = alarmUtil.processThirtyTwo(liBattStatus15);
+		char[] liAlarm16 = alarmUtil.processThirtyTwo(liBattStatus16);
+		char[] liAlarm17 = alarmUtil.processThirtyTwo(liBattStatus17);
+		char[] liAlarm18 = alarmUtil.processThirtyTwo(liBattStatus18);
+		char[] liAlarm19 = alarmUtil.processThirtyTwo(liBattStatus19);
+		char[] liAlarm20 = alarmUtil.processThirtyTwo(liBattStatus20);
 
 		int alarm[] = new int[1048];
-		alarm[0]=Character.getNumericValue(alarmCharArray[3]);
-		alarm[1]=Character.getNumericValue(alarmCharArray[2]);
-		alarm[2]=Character.getNumericValue(alarmCharArray[1]);
-		alarm[3]=Character.getNumericValue(alarmCharArray[0]);
+		alarm[0]=Character.getNumericValue(alarmStringArray[3]);
+		alarm[1]=Character.getNumericValue(alarmStringArray[2]);
+		alarm[2]=Character.getNumericValue(alarmStringArray[1]);
+		alarm[3]=Character.getNumericValue(alarmStringArray[0]);
 
-		alarm[4]=Character.getNumericValue(alarmCharArray[7]);
-		alarm[5]=Character.getNumericValue(alarmCharArray[6]);
-		alarm[6]=Character.getNumericValue(alarmCharArray[5]);
-		alarm[7]=Character.getNumericValue(alarmCharArray[4]);
+		alarm[4]=Character.getNumericValue(alarmStringArray[7]);
+		alarm[5]=Character.getNumericValue(alarmStringArray[6]);
+		alarm[6]=Character.getNumericValue(alarmStringArray[5]);
+		alarm[7]=Character.getNumericValue(alarmStringArray[4]);
 
-		alarm[8]=Character.getNumericValue(alarmCharArray[11]);
-		alarm[9]=Character.getNumericValue(alarmCharArray[10]);
-		alarm[10]=Character.getNumericValue(alarmCharArray[9]);
-		alarm[11]=Character.getNumericValue(alarmCharArray[8]);
+		alarm[8]=Character.getNumericValue(alarmStringArray[11]);
+		alarm[9]=Character.getNumericValue(alarmStringArray[10]);
+		alarm[10]=Character.getNumericValue(alarmStringArray[9]);
+		alarm[11]=Character.getNumericValue(alarmStringArray[8]);
 
-		alarm[12]=Character.getNumericValue(alarmCharArray[15]);
-		alarm[13]=Character.getNumericValue(alarmCharArray[14]);
-		alarm[14]=Character.getNumericValue(alarmCharArray[13]);
-		alarm[15]=Character.getNumericValue(alarmCharArray[12]);
+		alarm[12]=Character.getNumericValue(alarmStringArray[15]);
+		alarm[13]=Character.getNumericValue(alarmStringArray[14]);
+		alarm[14]=Character.getNumericValue(alarmStringArray[13]);
+		alarm[15]=Character.getNumericValue(alarmStringArray[12]);
 
-		alarm[16]=Character.getNumericValue(alarmCharArray[19]);
-		alarm[17]=Character.getNumericValue(alarmCharArray[18]);
-		alarm[18]=Character.getNumericValue(alarmCharArray[17]);
-		alarm[19]=Character.getNumericValue(alarmCharArray[16]);
+		alarm[16]=Character.getNumericValue(alarmStringArray[19]);
+		alarm[17]=Character.getNumericValue(alarmStringArray[18]);
+		alarm[18]=Character.getNumericValue(alarmStringArray[17]);
+		alarm[19]=Character.getNumericValue(alarmStringArray[16]);
 
-		alarm[20]=Character.getNumericValue(alarmCharArray[23]);
-		alarm[21]=Character.getNumericValue(alarmCharArray[22]);
-		alarm[22]=Character.getNumericValue(alarmCharArray[21]);
-		alarm[23]=Character.getNumericValue(alarmCharArray[20]);
+		alarm[20]=Character.getNumericValue(alarmStringArray[23]);
+		alarm[21]=Character.getNumericValue(alarmStringArray[22]);
+		alarm[22]=Character.getNumericValue(alarmStringArray[21]);
+		alarm[23]=Character.getNumericValue(alarmStringArray[20]);
 
-		alarm[24]=Character.getNumericValue(alarmCharArray[27]);
-		alarm[25]=Character.getNumericValue(alarmCharArray[26]);
-		alarm[26]=Character.getNumericValue(alarmCharArray[25]);
-		alarm[27]=Character.getNumericValue(alarmCharArray[24]);
+		alarm[24]=Character.getNumericValue(alarmStringArray[27]);
+		alarm[25]=Character.getNumericValue(alarmStringArray[26]);
+		alarm[26]=Character.getNumericValue(alarmStringArray[25]);
+		alarm[27]=Character.getNumericValue(alarmStringArray[24]);
 
-		alarm[28]=Character.getNumericValue(alarmCharArray[31]);
-		alarm[29]=Character.getNumericValue(alarmCharArray[30]);
-		alarm[30]=Character.getNumericValue(alarmCharArray[29]);
-		alarm[31]=Character.getNumericValue(alarmCharArray[28]);
+		alarm[28]=Character.getNumericValue(alarmStringArray[31]);
+		alarm[29]=Character.getNumericValue(alarmStringArray[30]);
+		alarm[30]=Character.getNumericValue(alarmStringArray[29]);
+		alarm[31]=Character.getNumericValue(alarmStringArray[28]);
 
-		alarm[32]=Character.getNumericValue(alarmCharArray[35]);
-		alarm[33]=Character.getNumericValue(alarmCharArray[34]);
-		alarm[34]=Character.getNumericValue(alarmCharArray[33]);
-		alarm[35]=Character.getNumericValue(alarmCharArray[32]);
+		alarm[32]=Character.getNumericValue(alarmStringArray[35]);
+		alarm[33]=Character.getNumericValue(alarmStringArray[34]);
+		alarm[34]=Character.getNumericValue(alarmStringArray[33]);
+		alarm[35]=Character.getNumericValue(alarmStringArray[32]);
 
-		alarm[36]=Character.getNumericValue(alarmCharArray[39]);
-		alarm[37]=Character.getNumericValue(alarmCharArray[38]);
-		alarm[38]=Character.getNumericValue(alarmCharArray[37]);
-		alarm[39]=Character.getNumericValue(alarmCharArray[36]);
+		alarm[36]=Character.getNumericValue(alarmStringArray[39]);
+		alarm[37]=Character.getNumericValue(alarmStringArray[38]);
+		alarm[38]=Character.getNumericValue(alarmStringArray[37]);
+		alarm[39]=Character.getNumericValue(alarmStringArray[36]);
 
-		alarm[40]=Character.getNumericValue(alarmCharArray[43]);
-		alarm[41]=Character.getNumericValue(alarmCharArray[42]);
-		alarm[42]=Character.getNumericValue(alarmCharArray[41]);
-		alarm[43]=Character.getNumericValue(alarmCharArray[40]);
+		alarm[40]=Character.getNumericValue(alarmStringArray[43]);
+		alarm[41]=Character.getNumericValue(alarmStringArray[42]);
+		alarm[42]=Character.getNumericValue(alarmStringArray[41]);
+		alarm[43]=Character.getNumericValue(alarmStringArray[40]);
 
-		alarm[44]=Character.getNumericValue(alarmCharArray[47]);
-		alarm[45]=Character.getNumericValue(alarmCharArray[46]);
-		alarm[46]=Character.getNumericValue(alarmCharArray[45]);
-		alarm[47]=Character.getNumericValue(alarmCharArray[44]);
+		alarm[44]=Character.getNumericValue(alarmStringArray[47]);
+		alarm[45]=Character.getNumericValue(alarmStringArray[46]);
+		alarm[46]=Character.getNumericValue(alarmStringArray[45]);
+		alarm[47]=Character.getNumericValue(alarmStringArray[44]);
 
-		alarm[48]=Character.getNumericValue(alarmCharArray[51]);
-		alarm[49]=Character.getNumericValue(alarmCharArray[50]);
-		alarm[50]=Character.getNumericValue(alarmCharArray[49]);
-		alarm[51]=Character.getNumericValue(alarmCharArray[48]);
+		alarm[48]=Character.getNumericValue(alarmStringArray[51]);
+		alarm[49]=Character.getNumericValue(alarmStringArray[50]);
+		alarm[50]=Character.getNumericValue(alarmStringArray[49]);
+		alarm[51]=Character.getNumericValue(alarmStringArray[48]);
 
-		alarm[52]=Character.getNumericValue(alarmCharArray[55]);
-		alarm[53]=Character.getNumericValue(alarmCharArray[54]);
-		alarm[54]=Character.getNumericValue(alarmCharArray[53]);
-		alarm[55]=Character.getNumericValue(alarmCharArray[52]);
+		alarm[52]=Character.getNumericValue(alarmStringArray[55]);
+		alarm[53]=Character.getNumericValue(alarmStringArray[54]);
+		alarm[54]=Character.getNumericValue(alarmStringArray[53]);
+		alarm[55]=Character.getNumericValue(alarmStringArray[52]);
 
-		alarm[56]=Character.getNumericValue(alarmCharArray[59]);
-		alarm[57]=Character.getNumericValue(alarmCharArray[58]);
-		alarm[58]=Character.getNumericValue(alarmCharArray[57]);
-		alarm[59]=Character.getNumericValue(alarmCharArray[56]);
+		alarm[56]=Character.getNumericValue(alarmStringArray[59]);
+		alarm[57]=Character.getNumericValue(alarmStringArray[58]);
+		alarm[58]=Character.getNumericValue(alarmStringArray[57]);
+		alarm[59]=Character.getNumericValue(alarmStringArray[56]);
 
-		alarm[60]=Character.getNumericValue(alarmCharArray[63]);
-		alarm[61]=Character.getNumericValue(alarmCharArray[62]);
-		alarm[62]=Character.getNumericValue(alarmCharArray[61]);
-		alarm[63]=Character.getNumericValue(alarmCharArray[60]);
+		alarm[60]=Character.getNumericValue(alarmStringArray[63]);
+		alarm[61]=Character.getNumericValue(alarmStringArray[62]);
+		alarm[62]=Character.getNumericValue(alarmStringArray[61]);
+		alarm[63]=Character.getNumericValue(alarmStringArray[60]);
 
 		/*Status String*/
 
-		alarm[64]=Character.getNumericValue(alarmCharArray1[3]);
-		alarm[65]=Character.getNumericValue(alarmCharArray1[2]);
-		alarm[66]=Character.getNumericValue(alarmCharArray1[1]);
-		alarm[67]=Character.getNumericValue(alarmCharArray1[0]);
-		alarm[68]=Character.getNumericValue(alarmCharArray1[7]);
-		alarm[69]=Character.getNumericValue(alarmCharArray1[6]);
-		alarm[70]=Character.getNumericValue(alarmCharArray1[5]);
-		alarm[71]=Character.getNumericValue(alarmCharArray1[4]);
-		alarm[72]=Character.getNumericValue(alarmCharArray1[11]);
-		alarm[73]=Character.getNumericValue(alarmCharArray1[10]);
-		alarm[74]=Character.getNumericValue(alarmCharArray1[9]);
-		alarm[75]=Character.getNumericValue(alarmCharArray1[8]);
-		alarm[76]=Character.getNumericValue(alarmCharArray1[15]);
-		alarm[77]=Character.getNumericValue(alarmCharArray1[14]);
-		alarm[78]=Character.getNumericValue(alarmCharArray1[13]);
-		alarm[79]=Character.getNumericValue(alarmCharArray1[12]);
-		alarm[80]=Character.getNumericValue(alarmCharArray1[19]);
-		alarm[81]=Character.getNumericValue(alarmCharArray1[18]);
-		alarm[82]=Character.getNumericValue(alarmCharArray1[17]);
-		alarm[83]=Character.getNumericValue(alarmCharArray1[16]);
-		alarm[84]=Character.getNumericValue(alarmCharArray1[23]);
-		alarm[85]=Character.getNumericValue(alarmCharArray1[22]);
-		alarm[86]=Character.getNumericValue(alarmCharArray1[21]);
-		alarm[87]=Character.getNumericValue(alarmCharArray1[20]);
-		alarm[88]=Character.getNumericValue(alarmCharArray1[27]);
-		alarm[89]=Character.getNumericValue(alarmCharArray1[26]);
-		alarm[90]=Character.getNumericValue(alarmCharArray1[25]);
-		alarm[91]=Character.getNumericValue(alarmCharArray1[24]);
-		alarm[92]=Character.getNumericValue(alarmCharArray1[31]);
-		alarm[93]=Character.getNumericValue(alarmCharArray1[30]);
-		alarm[94]=Character.getNumericValue(alarmCharArray1[29]);
-		alarm[95]=Character.getNumericValue(alarmCharArray1[28]);
-
-
-
+		alarm[64]=Character.getNumericValue(statusAlarmArray[3]);
+		alarm[65]=Character.getNumericValue(statusAlarmArray[2]);
+		alarm[66]=Character.getNumericValue(statusAlarmArray[1]);
+		alarm[67]=Character.getNumericValue(statusAlarmArray[0]);
+		alarm[68]=Character.getNumericValue(statusAlarmArray[7]);
+		alarm[69]=Character.getNumericValue(statusAlarmArray[6]);
+		alarm[70]=Character.getNumericValue(statusAlarmArray[5]);
+		alarm[71]=Character.getNumericValue(statusAlarmArray[4]);
+		alarm[72]=Character.getNumericValue(statusAlarmArray[11]);
+		alarm[73]=Character.getNumericValue(statusAlarmArray[10]);
+		alarm[74]=Character.getNumericValue(statusAlarmArray[9]);
+		alarm[75]=Character.getNumericValue(statusAlarmArray[8]);
+		alarm[76]=Character.getNumericValue(statusAlarmArray[15]);
+		alarm[77]=Character.getNumericValue(statusAlarmArray[14]);
+		alarm[78]=Character.getNumericValue(statusAlarmArray[13]);
+		alarm[79]=Character.getNumericValue(statusAlarmArray[12]);
+		alarm[80]=Character.getNumericValue(statusAlarmArray[19]);
+		alarm[81]=Character.getNumericValue(statusAlarmArray[18]);
+		alarm[82]=Character.getNumericValue(statusAlarmArray[17]);
+		alarm[83]=Character.getNumericValue(statusAlarmArray[16]);
+		alarm[84]=Character.getNumericValue(statusAlarmArray[23]);
+		alarm[85]=Character.getNumericValue(statusAlarmArray[22]);
+		alarm[86]=Character.getNumericValue(statusAlarmArray[21]);
+		alarm[87]=Character.getNumericValue(statusAlarmArray[20]);
+		alarm[88]=Character.getNumericValue(statusAlarmArray[27]);
+		alarm[89]=Character.getNumericValue(statusAlarmArray[26]);
+		alarm[90]=Character.getNumericValue(statusAlarmArray[25]);
+		alarm[91]=Character.getNumericValue(statusAlarmArray[24]);
+		alarm[92]=Character.getNumericValue(statusAlarmArray[31]);
+		alarm[93]=Character.getNumericValue(statusAlarmArray[30]);
+		alarm[94]=Character.getNumericValue(statusAlarmArray[29]);
+		alarm[95]=Character.getNumericValue(statusAlarmArray[28]);
 
 		/*Comm String*/
 
-		alarm[96]=Character.getNumericValue(alarmCharArray2[3]);
-		alarm[97]=Character.getNumericValue(alarmCharArray2[2]);
-		alarm[98]=Character.getNumericValue(alarmCharArray2[1]);
-		alarm[99]=Character.getNumericValue(alarmCharArray2[0]);
-		alarm[100]=Character.getNumericValue(alarmCharArray2[7]);
-		alarm[101]=Character.getNumericValue(alarmCharArray2[6]);
-		alarm[102]=Character.getNumericValue(alarmCharArray2[5]);
-		alarm[103]=Character.getNumericValue(alarmCharArray2[4]);
-
+		alarm[96]=Character.getNumericValue(commStatusAlarmArray[3]);
+		alarm[97]=Character.getNumericValue(commStatusAlarmArray[2]);
+		alarm[98]=Character.getNumericValue(commStatusAlarmArray[1]);
+		alarm[99]=Character.getNumericValue(commStatusAlarmArray[0]);
+		alarm[100]=Character.getNumericValue(commStatusAlarmArray[7]);
+		alarm[101]=Character.getNumericValue(commStatusAlarmArray[6]);
+		alarm[102]=Character.getNumericValue(commStatusAlarmArray[5]);
+		alarm[103]=Character.getNumericValue(commStatusAlarmArray[4]);
 
 		/*SysOutLoadStatus*/
 
-		alarm[104]=Character.getNumericValue(alarmCharArray3[3]);
-		alarm[105]=Character.getNumericValue(alarmCharArray3[2]);
-		alarm[106]=Character.getNumericValue(alarmCharArray3[1]);
-		alarm[107]=Character.getNumericValue(alarmCharArray3[0]);
-		alarm[108]=Character.getNumericValue(alarmCharArray3[7]);
-		alarm[109]=Character.getNumericValue(alarmCharArray3[6]);
-		alarm[110]=Character.getNumericValue(alarmCharArray3[5]);
-		alarm[111]=Character.getNumericValue(alarmCharArray3[4]);
-		alarm[112]=Character.getNumericValue(alarmCharArray3[11]);
-		alarm[113]=Character.getNumericValue(alarmCharArray3[10]);
-		alarm[114]=Character.getNumericValue(alarmCharArray3[9]);
-		alarm[115]=Character.getNumericValue(alarmCharArray3[8]);
-		alarm[116]=Character.getNumericValue(alarmCharArray3[15]);
-		alarm[117]=Character.getNumericValue(alarmCharArray3[14]);
-		alarm[118]=Character.getNumericValue(alarmCharArray3[13]);
-		alarm[119]=Character.getNumericValue(alarmCharArray3[12]);
+		alarm[104]=Character.getNumericValue(sysOutLoadStatusAlarmArray[3]);
+		alarm[105]=Character.getNumericValue(sysOutLoadStatusAlarmArray[2]);
+		alarm[106]=Character.getNumericValue(sysOutLoadStatusAlarmArray[1]);
+		alarm[107]=Character.getNumericValue(sysOutLoadStatusAlarmArray[0]);
+		alarm[108]=Character.getNumericValue(sysOutLoadStatusAlarmArray[7]);
+		alarm[109]=Character.getNumericValue(sysOutLoadStatusAlarmArray[6]);
+		alarm[110]=Character.getNumericValue(sysOutLoadStatusAlarmArray[5]);
+		alarm[111]=Character.getNumericValue(sysOutLoadStatusAlarmArray[4]);
+		alarm[112]=Character.getNumericValue(sysOutLoadStatusAlarmArray[11]);
+		alarm[113]=Character.getNumericValue(sysOutLoadStatusAlarmArray[10]);
+		alarm[114]=Character.getNumericValue(sysOutLoadStatusAlarmArray[9]);
+		alarm[115]=Character.getNumericValue(sysOutLoadStatusAlarmArray[8]);
+		alarm[116]=Character.getNumericValue(sysOutLoadStatusAlarmArray[15]);
+		alarm[117]=Character.getNumericValue(sysOutLoadStatusAlarmArray[14]);
+		alarm[118]=Character.getNumericValue(sysOutLoadStatusAlarmArray[13]);
+		alarm[119]=Character.getNumericValue(sysOutLoadStatusAlarmArray[12]);
 
 		/*Solar 1*/
-		alarm[120]=Character.getNumericValue(alarmCharArray4[3]);
-		alarm[121]=Character.getNumericValue(alarmCharArray4[2]);
-		alarm[122]=Character.getNumericValue(alarmCharArray4[1]);
-		alarm[123]=Character.getNumericValue(alarmCharArray4[0]);
-		alarm[124]=Character.getNumericValue(alarmCharArray4[7]);
-		alarm[125]=Character.getNumericValue(alarmCharArray4[6]);
-		alarm[126]=Character.getNumericValue(alarmCharArray4[5]);
-		alarm[127]=Character.getNumericValue(alarmCharArray4[4]);
+		alarm[120]=Character.getNumericValue(solarStatusMod1AlarmArray[3]);
+		alarm[121]=Character.getNumericValue(solarStatusMod1AlarmArray[2]);
+		alarm[122]=Character.getNumericValue(solarStatusMod1AlarmArray[1]);
+		alarm[123]=Character.getNumericValue(solarStatusMod1AlarmArray[0]);
+		alarm[124]=Character.getNumericValue(solarStatusMod1AlarmArray[7]);
+		alarm[125]=Character.getNumericValue(solarStatusMod1AlarmArray[6]);
+		alarm[126]=Character.getNumericValue(solarStatusMod1AlarmArray[5]);
+		alarm[127]=Character.getNumericValue(solarStatusMod1AlarmArray[4]);
 		/*Solar 2*/
-		alarm[128]=Character.getNumericValue(alarmCharArray5[3]);
-		alarm[129]=Character.getNumericValue(alarmCharArray5[2]);
-		alarm[130]=Character.getNumericValue(alarmCharArray5[1]);
-		alarm[131]=Character.getNumericValue(alarmCharArray5[0]);
-		alarm[132]=Character.getNumericValue(alarmCharArray5[7]);
-		alarm[133]=Character.getNumericValue(alarmCharArray5[6]);
-		alarm[134]=Character.getNumericValue(alarmCharArray5[5]);
-		alarm[135]=Character.getNumericValue(alarmCharArray5[4]);
+		alarm[128]=Character.getNumericValue(solarStatusMod2AlarmArray[3]);
+		alarm[129]=Character.getNumericValue(solarStatusMod2AlarmArray[2]);
+		alarm[130]=Character.getNumericValue(solarStatusMod2AlarmArray[1]);
+		alarm[131]=Character.getNumericValue(solarStatusMod2AlarmArray[0]);
+		alarm[132]=Character.getNumericValue(solarStatusMod2AlarmArray[7]);
+		alarm[133]=Character.getNumericValue(solarStatusMod2AlarmArray[6]);
+		alarm[134]=Character.getNumericValue(solarStatusMod2AlarmArray[5]);
+		alarm[135]=Character.getNumericValue(solarStatusMod2AlarmArray[4]);
 		/*Solar 3*/
-		alarm[136]=Character.getNumericValue(alarmCharArray6[3]);
-		alarm[137]=Character.getNumericValue(alarmCharArray6[2]);
-		alarm[138]=Character.getNumericValue(alarmCharArray6[1]);
-		alarm[139]=Character.getNumericValue(alarmCharArray6[0]);
-		alarm[140]=Character.getNumericValue(alarmCharArray6[7]);
-		alarm[141]=Character.getNumericValue(alarmCharArray6[6]);
-		alarm[142]=Character.getNumericValue(alarmCharArray6[5]);
-		alarm[143]=Character.getNumericValue(alarmCharArray6[4]);
+		alarm[136]=Character.getNumericValue(solarStatusMod3AlarmArray[3]);
+		alarm[137]=Character.getNumericValue(solarStatusMod3AlarmArray[2]);
+		alarm[138]=Character.getNumericValue(solarStatusMod3AlarmArray[1]);
+		alarm[139]=Character.getNumericValue(solarStatusMod3AlarmArray[0]);
+		alarm[140]=Character.getNumericValue(solarStatusMod3AlarmArray[7]);
+		alarm[141]=Character.getNumericValue(solarStatusMod3AlarmArray[6]);
+		alarm[142]=Character.getNumericValue(solarStatusMod3AlarmArray[5]);
+		alarm[143]=Character.getNumericValue(solarStatusMod3AlarmArray[4]);
 		/*Solar 4*/
-		alarm[144]=Character.getNumericValue(alarmCharArray7[3]);
-		alarm[145]=Character.getNumericValue(alarmCharArray7[2]);
-		alarm[146]=Character.getNumericValue(alarmCharArray7[1]);
-		alarm[147]=Character.getNumericValue(alarmCharArray7[0]);
-		alarm[148]=Character.getNumericValue(alarmCharArray7[7]);
-		alarm[149]=Character.getNumericValue(alarmCharArray7[6]);
-		alarm[150]=Character.getNumericValue(alarmCharArray7[5]);
-		alarm[151]=Character.getNumericValue(alarmCharArray7[4]);
+		alarm[144]=Character.getNumericValue(solarStatusMod4AlarmArray[3]);
+		alarm[145]=Character.getNumericValue(solarStatusMod4AlarmArray[2]);
+		alarm[146]=Character.getNumericValue(solarStatusMod4AlarmArray[1]);
+		alarm[147]=Character.getNumericValue(solarStatusMod4AlarmArray[0]);
+		alarm[148]=Character.getNumericValue(solarStatusMod4AlarmArray[7]);
+		alarm[149]=Character.getNumericValue(solarStatusMod4AlarmArray[6]);
+		alarm[150]=Character.getNumericValue(solarStatusMod4AlarmArray[5]);
+		alarm[151]=Character.getNumericValue(solarStatusMod4AlarmArray[4]);
 		/*Solar 5*/
-		alarm[152]=Character.getNumericValue(alarmCharArray8[3]);
-		alarm[153]=Character.getNumericValue(alarmCharArray8[2]);
-		alarm[154]=Character.getNumericValue(alarmCharArray8[1]);
-		alarm[155]=Character.getNumericValue(alarmCharArray8[0]);
-		alarm[156]=Character.getNumericValue(alarmCharArray8[7]);
-		alarm[157]=Character.getNumericValue(alarmCharArray8[6]);
-		alarm[158]=Character.getNumericValue(alarmCharArray8[5]);
-		alarm[159]=Character.getNumericValue(alarmCharArray8[4]);
+		alarm[152]=Character.getNumericValue(solarStatusMod5AlarmArray[3]);
+		alarm[153]=Character.getNumericValue(solarStatusMod5AlarmArray[2]);
+		alarm[154]=Character.getNumericValue(solarStatusMod5AlarmArray[1]);
+		alarm[155]=Character.getNumericValue(solarStatusMod5AlarmArray[0]);
+		alarm[156]=Character.getNumericValue(solarStatusMod5AlarmArray[7]);
+		alarm[157]=Character.getNumericValue(solarStatusMod5AlarmArray[6]);
+		alarm[158]=Character.getNumericValue(solarStatusMod5AlarmArray[5]);
+		alarm[159]=Character.getNumericValue(solarStatusMod5AlarmArray[4]);
 		/*Solar 6*/
-		alarm[160]=Character.getNumericValue(alarmCharArray9[3]);
-		alarm[161]=Character.getNumericValue(alarmCharArray9[2]);
-		alarm[162]=Character.getNumericValue(alarmCharArray9[1]);
-		alarm[163]=Character.getNumericValue(alarmCharArray9[0]);
-		alarm[164]=Character.getNumericValue(alarmCharArray9[7]);
-		alarm[165]=Character.getNumericValue(alarmCharArray9[6]);
-		alarm[166]=Character.getNumericValue(alarmCharArray9[5]);
-		alarm[167]=Character.getNumericValue(alarmCharArray9[4]);
+		alarm[160]=Character.getNumericValue(solarStatusMod6AlarmArray[3]);
+		alarm[161]=Character.getNumericValue(solarStatusMod6AlarmArray[2]);
+		alarm[162]=Character.getNumericValue(solarStatusMod6AlarmArray[1]);
+		alarm[163]=Character.getNumericValue(solarStatusMod6AlarmArray[0]);
+		alarm[164]=Character.getNumericValue(solarStatusMod6AlarmArray[7]);
+		alarm[165]=Character.getNumericValue(solarStatusMod6AlarmArray[6]);
+		alarm[166]=Character.getNumericValue(solarStatusMod6AlarmArray[5]);
+		alarm[167]=Character.getNumericValue(solarStatusMod6AlarmArray[4]);
 		/*Solar 7*/
-		alarm[168]=Character.getNumericValue(alarmCharArray10[3]);
-		alarm[169]=Character.getNumericValue(alarmCharArray10[2]);
-		alarm[170]=Character.getNumericValue(alarmCharArray10[1]);
-		alarm[171]=Character.getNumericValue(alarmCharArray10[0]);
-		alarm[172]=Character.getNumericValue(alarmCharArray10[7]);
-		alarm[173]=Character.getNumericValue(alarmCharArray10[6]);
-		alarm[174]=Character.getNumericValue(alarmCharArray10[5]);
-		alarm[175]=Character.getNumericValue(alarmCharArray10[4]);
+		alarm[168]=Character.getNumericValue(solarStatusMod7AlarmArray[3]);
+		alarm[169]=Character.getNumericValue(solarStatusMod7AlarmArray[2]);
+		alarm[170]=Character.getNumericValue(solarStatusMod7AlarmArray[1]);
+		alarm[171]=Character.getNumericValue(solarStatusMod7AlarmArray[0]);
+		alarm[172]=Character.getNumericValue(solarStatusMod7AlarmArray[7]);
+		alarm[173]=Character.getNumericValue(solarStatusMod7AlarmArray[6]);
+		alarm[174]=Character.getNumericValue(solarStatusMod7AlarmArray[5]);
+		alarm[175]=Character.getNumericValue(solarStatusMod7AlarmArray[4]);
 		/*Solar 8*/
-		alarm[176]=Character.getNumericValue(alarmCharArray11[3]);
-		alarm[177]=Character.getNumericValue(alarmCharArray11[2]);
-		alarm[178]=Character.getNumericValue(alarmCharArray11[1]);
-		alarm[179]=Character.getNumericValue(alarmCharArray11[0]);
-		alarm[180]=Character.getNumericValue(alarmCharArray11[7]);
-		alarm[181]=Character.getNumericValue(alarmCharArray11[6]);
-		alarm[182]=Character.getNumericValue(alarmCharArray11[5]);
-		alarm[183]=Character.getNumericValue(alarmCharArray11[4]);
+		alarm[176]=Character.getNumericValue(solarStatusMod8AlarmArray[3]);
+		alarm[177]=Character.getNumericValue(solarStatusMod8AlarmArray[2]);
+		alarm[178]=Character.getNumericValue(solarStatusMod8AlarmArray[1]);
+		alarm[179]=Character.getNumericValue(solarStatusMod8AlarmArray[0]);
+		alarm[180]=Character.getNumericValue(solarStatusMod8AlarmArray[7]);
+		alarm[181]=Character.getNumericValue(solarStatusMod8AlarmArray[6]);
+		alarm[182]=Character.getNumericValue(solarStatusMod8AlarmArray[5]);
+		alarm[183]=Character.getNumericValue(solarStatusMod8AlarmArray[4]);
 		/*Solar 9*/
-		alarm[184]=Character.getNumericValue(alarmCharArray12[3]);
-		alarm[185]=Character.getNumericValue(alarmCharArray12[2]);
-		alarm[186]=Character.getNumericValue(alarmCharArray12[1]);
-		alarm[187]=Character.getNumericValue(alarmCharArray12[0]);
-		alarm[188]=Character.getNumericValue(alarmCharArray12[7]);
-		alarm[189]=Character.getNumericValue(alarmCharArray12[6]);
-		alarm[190]=Character.getNumericValue(alarmCharArray12[5]);
-		alarm[191]=Character.getNumericValue(alarmCharArray12[4]);
+		alarm[184]=Character.getNumericValue(solarStatusMod9AlarmArray[3]);
+		alarm[185]=Character.getNumericValue(solarStatusMod9AlarmArray[2]);
+		alarm[186]=Character.getNumericValue(solarStatusMod9AlarmArray[1]);
+		alarm[187]=Character.getNumericValue(solarStatusMod9AlarmArray[0]);
+		alarm[188]=Character.getNumericValue(solarStatusMod9AlarmArray[7]);
+		alarm[189]=Character.getNumericValue(solarStatusMod9AlarmArray[6]);
+		alarm[190]=Character.getNumericValue(solarStatusMod9AlarmArray[5]);
+		alarm[191]=Character.getNumericValue(solarStatusMod9AlarmArray[4]);
 		/*Solar 10*/
-		alarm[192]=Character.getNumericValue(alarmCharArray13[3]);
-		alarm[193]=Character.getNumericValue(alarmCharArray13[2]);
-		alarm[194]=Character.getNumericValue(alarmCharArray13[1]);
-		alarm[195]=Character.getNumericValue(alarmCharArray13[0]);
-		alarm[196]=Character.getNumericValue(alarmCharArray13[7]);
-		alarm[197]=Character.getNumericValue(alarmCharArray13[6]);
-		alarm[198]=Character.getNumericValue(alarmCharArray13[5]);
-		alarm[199]=Character.getNumericValue(alarmCharArray13[4]);
+		alarm[192]=Character.getNumericValue(solarStatusMod10AlarmArray[3]);
+		alarm[193]=Character.getNumericValue(solarStatusMod10AlarmArray[2]);
+		alarm[194]=Character.getNumericValue(solarStatusMod10AlarmArray[1]);
+		alarm[195]=Character.getNumericValue(solarStatusMod10AlarmArray[0]);
+		alarm[196]=Character.getNumericValue(solarStatusMod10AlarmArray[7]);
+		alarm[197]=Character.getNumericValue(solarStatusMod10AlarmArray[6]);
+		alarm[198]=Character.getNumericValue(solarStatusMod10AlarmArray[5]);
+		alarm[199]=Character.getNumericValue(solarStatusMod10AlarmArray[4]);
 		/*Solar 11*/
-		alarm[200]=Character.getNumericValue(alarmCharArray14[3]);
-		alarm[201]=Character.getNumericValue(alarmCharArray14[2]);
-		alarm[202]=Character.getNumericValue(alarmCharArray14[1]);
-		alarm[203]=Character.getNumericValue(alarmCharArray14[0]);
-		alarm[204]=Character.getNumericValue(alarmCharArray14[7]);
-		alarm[205]=Character.getNumericValue(alarmCharArray14[6]);
-		alarm[206]=Character.getNumericValue(alarmCharArray14[5]);
-		alarm[207]=Character.getNumericValue(alarmCharArray14[4]);
+		alarm[200]=Character.getNumericValue(solarStatusMod11AlarmArray[3]);
+		alarm[201]=Character.getNumericValue(solarStatusMod11AlarmArray[2]);
+		alarm[202]=Character.getNumericValue(solarStatusMod11AlarmArray[1]);
+		alarm[203]=Character.getNumericValue(solarStatusMod11AlarmArray[0]);
+		alarm[204]=Character.getNumericValue(solarStatusMod11AlarmArray[7]);
+		alarm[205]=Character.getNumericValue(solarStatusMod11AlarmArray[6]);
+		alarm[206]=Character.getNumericValue(solarStatusMod11AlarmArray[5]);
+		alarm[207]=Character.getNumericValue(solarStatusMod11AlarmArray[4]);
 		/*Solar 12*/
-		alarm[208]=Character.getNumericValue(alarmCharArray15[3]);
-		alarm[209]=Character.getNumericValue(alarmCharArray15[2]);
-		alarm[210]=Character.getNumericValue(alarmCharArray15[1]);
-		alarm[211]=Character.getNumericValue(alarmCharArray15[0]);
-		alarm[212]=Character.getNumericValue(alarmCharArray15[7]);
-		alarm[213]=Character.getNumericValue(alarmCharArray15[6]);
-		alarm[214]=Character.getNumericValue(alarmCharArray15[5]);
-		alarm[215]=Character.getNumericValue(alarmCharArray15[4]);
+		alarm[208]=Character.getNumericValue(solarStatusMod12AlarmArray[3]);
+		alarm[209]=Character.getNumericValue(solarStatusMod12AlarmArray[2]);
+		alarm[210]=Character.getNumericValue(solarStatusMod12AlarmArray[1]);
+		alarm[211]=Character.getNumericValue(solarStatusMod12AlarmArray[0]);
+		alarm[212]=Character.getNumericValue(solarStatusMod12AlarmArray[7]);
+		alarm[213]=Character.getNumericValue(solarStatusMod12AlarmArray[6]);
+		alarm[214]=Character.getNumericValue(solarStatusMod12AlarmArray[5]);
+		alarm[215]=Character.getNumericValue(solarStatusMod12AlarmArray[4]);
 		/*Solar 13*/
-		alarm[216]=Character.getNumericValue(alarmCharArray16[3]);
-		alarm[217]=Character.getNumericValue(alarmCharArray16[2]);
-		alarm[218]=Character.getNumericValue(alarmCharArray16[1]);
-		alarm[219]=Character.getNumericValue(alarmCharArray16[0]);
-		alarm[220]=Character.getNumericValue(alarmCharArray16[7]);
-		alarm[221]=Character.getNumericValue(alarmCharArray16[6]);
-		alarm[222]=Character.getNumericValue(alarmCharArray16[5]);
-		alarm[223]=Character.getNumericValue(alarmCharArray16[4]);
+		alarm[216]=Character.getNumericValue(solarStatusMod13AlarmArray[3]);
+		alarm[217]=Character.getNumericValue(solarStatusMod13AlarmArray[2]);
+		alarm[218]=Character.getNumericValue(solarStatusMod13AlarmArray[1]);
+		alarm[219]=Character.getNumericValue(solarStatusMod13AlarmArray[0]);
+		alarm[220]=Character.getNumericValue(solarStatusMod13AlarmArray[7]);
+		alarm[221]=Character.getNumericValue(solarStatusMod13AlarmArray[6]);
+		alarm[222]=Character.getNumericValue(solarStatusMod13AlarmArray[5]);
+		alarm[223]=Character.getNumericValue(solarStatusMod13AlarmArray[4]);
 		/*Solar 14*/
-		alarm[224]=Character.getNumericValue(alarmCharArray17[3]);
-		alarm[225]=Character.getNumericValue(alarmCharArray17[2]);
-		alarm[226]=Character.getNumericValue(alarmCharArray17[1]);
-		alarm[227]=Character.getNumericValue(alarmCharArray17[0]);
-		alarm[228]=Character.getNumericValue(alarmCharArray17[7]);
-		alarm[229]=Character.getNumericValue(alarmCharArray17[6]);
-		alarm[230]=Character.getNumericValue(alarmCharArray17[5]);
-		alarm[231]=Character.getNumericValue(alarmCharArray17[4]);
+		alarm[224]=Character.getNumericValue(solarStatusMod14AlarmArray[3]);
+		alarm[225]=Character.getNumericValue(solarStatusMod14AlarmArray[2]);
+		alarm[226]=Character.getNumericValue(solarStatusMod14AlarmArray[1]);
+		alarm[227]=Character.getNumericValue(solarStatusMod14AlarmArray[0]);
+		alarm[228]=Character.getNumericValue(solarStatusMod14AlarmArray[7]);
+		alarm[229]=Character.getNumericValue(solarStatusMod14AlarmArray[6]);
+		alarm[230]=Character.getNumericValue(solarStatusMod14AlarmArray[5]);
+		alarm[231]=Character.getNumericValue(solarStatusMod14AlarmArray[4]);
 		/*Solar 15*/
-		alarm[232]=Character.getNumericValue(alarmCharArray18[3]);
-		alarm[233]=Character.getNumericValue(alarmCharArray18[2]);
-		alarm[234]=Character.getNumericValue(alarmCharArray18[1]);
-		alarm[235]=Character.getNumericValue(alarmCharArray18[0]);
-		alarm[236]=Character.getNumericValue(alarmCharArray18[7]);
-		alarm[237]=Character.getNumericValue(alarmCharArray18[6]);
-		alarm[238]=Character.getNumericValue(alarmCharArray18[5]);
-		alarm[239]=Character.getNumericValue(alarmCharArray18[4]);
+		alarm[232]=Character.getNumericValue(solarStatusMod15AlarmArray[3]);
+		alarm[233]=Character.getNumericValue(solarStatusMod15AlarmArray[2]);
+		alarm[234]=Character.getNumericValue(solarStatusMod15AlarmArray[1]);
+		alarm[235]=Character.getNumericValue(solarStatusMod15AlarmArray[0]);
+		alarm[236]=Character.getNumericValue(solarStatusMod15AlarmArray[7]);
+		alarm[237]=Character.getNumericValue(solarStatusMod15AlarmArray[6]);
+		alarm[238]=Character.getNumericValue(solarStatusMod15AlarmArray[5]);
+		alarm[239]=Character.getNumericValue(solarStatusMod15AlarmArray[4]);
 		/*Solar 16*/
-		alarm[240]=Character.getNumericValue(alarmCharArray19[3]);
-		alarm[241]=Character.getNumericValue(alarmCharArray19[2]);
-		alarm[242]=Character.getNumericValue(alarmCharArray19[1]);
-		alarm[243]=Character.getNumericValue(alarmCharArray19[0]);
-		alarm[244]=Character.getNumericValue(alarmCharArray19[7]);
-		alarm[245]=Character.getNumericValue(alarmCharArray19[6]);
-		alarm[246]=Character.getNumericValue(alarmCharArray19[5]);
-		alarm[247]=Character.getNumericValue(alarmCharArray19[4]);
+		alarm[240]=Character.getNumericValue(solarStatusMod16AlarmArray[3]);
+		alarm[241]=Character.getNumericValue(solarStatusMod16AlarmArray[2]);
+		alarm[242]=Character.getNumericValue(solarStatusMod16AlarmArray[1]);
+		alarm[243]=Character.getNumericValue(solarStatusMod16AlarmArray[0]);
+		alarm[244]=Character.getNumericValue(solarStatusMod16AlarmArray[7]);
+		alarm[245]=Character.getNumericValue(solarStatusMod16AlarmArray[6]);
+		alarm[246]=Character.getNumericValue(solarStatusMod16AlarmArray[5]);
+		alarm[247]=Character.getNumericValue(solarStatusMod16AlarmArray[4]);
 		/*Solar 17*/
-		alarm[248]=Character.getNumericValue(alarmCharArray20[3]);
-		alarm[249]=Character.getNumericValue(alarmCharArray20[2]);
-		alarm[250]=Character.getNumericValue(alarmCharArray20[1]);
-		alarm[251]=Character.getNumericValue(alarmCharArray20[0]);
-		alarm[252]=Character.getNumericValue(alarmCharArray20[7]);
-		alarm[253]=Character.getNumericValue(alarmCharArray20[6]);
-		alarm[254]=Character.getNumericValue(alarmCharArray20[5]);
-		alarm[255]=Character.getNumericValue(alarmCharArray20[4]);
+		alarm[248]=Character.getNumericValue(solarStatusMod17AlarmArray[3]);
+		alarm[249]=Character.getNumericValue(solarStatusMod17AlarmArray[2]);
+		alarm[250]=Character.getNumericValue(solarStatusMod17AlarmArray[1]);
+		alarm[251]=Character.getNumericValue(solarStatusMod17AlarmArray[0]);
+		alarm[252]=Character.getNumericValue(solarStatusMod17AlarmArray[7]);
+		alarm[253]=Character.getNumericValue(solarStatusMod17AlarmArray[6]);
+		alarm[254]=Character.getNumericValue(solarStatusMod17AlarmArray[5]);
+		alarm[255]=Character.getNumericValue(solarStatusMod17AlarmArray[4]);
 		/*Solar 18*/
-		alarm[256]=Character.getNumericValue(alarmCharArray21[3]);
-		alarm[257]=Character.getNumericValue(alarmCharArray21[2]);
-		alarm[258]=Character.getNumericValue(alarmCharArray21[1]);
-		alarm[259]=Character.getNumericValue(alarmCharArray21[0]);
-		alarm[260]=Character.getNumericValue(alarmCharArray21[7]);
-		alarm[261]=Character.getNumericValue(alarmCharArray21[6]);
-		alarm[262]=Character.getNumericValue(alarmCharArray21[5]);
-		alarm[263]=Character.getNumericValue(alarmCharArray21[4]);
+		alarm[256]=Character.getNumericValue(solarStatusMod18AlarmArray[3]);
+		alarm[257]=Character.getNumericValue(solarStatusMod18AlarmArray[2]);
+		alarm[258]=Character.getNumericValue(solarStatusMod18AlarmArray[1]);
+		alarm[259]=Character.getNumericValue(solarStatusMod18AlarmArray[0]);
+		alarm[260]=Character.getNumericValue(solarStatusMod18AlarmArray[7]);
+		alarm[261]=Character.getNumericValue(solarStatusMod18AlarmArray[6]);
+		alarm[262]=Character.getNumericValue(solarStatusMod18AlarmArray[5]);
+		alarm[263]=Character.getNumericValue(solarStatusMod18AlarmArray[4]);
 		/*Solar 19*/
-		alarm[264]=Character.getNumericValue(alarmCharArray22[3]);
-		alarm[265]=Character.getNumericValue(alarmCharArray22[2]);
-		alarm[266]=Character.getNumericValue(alarmCharArray22[1]);
-		alarm[267]=Character.getNumericValue(alarmCharArray22[0]);
-		alarm[268]=Character.getNumericValue(alarmCharArray22[7]);
-		alarm[269]=Character.getNumericValue(alarmCharArray22[6]);
-		alarm[270]=Character.getNumericValue(alarmCharArray22[5]);
-		alarm[271]=Character.getNumericValue(alarmCharArray22[4]);
+		alarm[264]=Character.getNumericValue(solarStatusMod19AlarmArray[3]);
+		alarm[265]=Character.getNumericValue(solarStatusMod19AlarmArray[2]);
+		alarm[266]=Character.getNumericValue(solarStatusMod19AlarmArray[1]);
+		alarm[267]=Character.getNumericValue(solarStatusMod19AlarmArray[0]);
+		alarm[268]=Character.getNumericValue(solarStatusMod19AlarmArray[7]);
+		alarm[269]=Character.getNumericValue(solarStatusMod19AlarmArray[6]);
+		alarm[270]=Character.getNumericValue(solarStatusMod19AlarmArray[5]);
+		alarm[271]=Character.getNumericValue(solarStatusMod19AlarmArray[4]);
 		/*Solar 20*/
-		alarm[272]=Character.getNumericValue(alarmCharArray23[3]);
-		alarm[273]=Character.getNumericValue(alarmCharArray23[2]);
-		alarm[274]=Character.getNumericValue(alarmCharArray23[1]);
-		alarm[275]=Character.getNumericValue(alarmCharArray23[0]);
-		alarm[276]=Character.getNumericValue(alarmCharArray23[7]);
-		alarm[277]=Character.getNumericValue(alarmCharArray23[6]);
-		alarm[278]=Character.getNumericValue(alarmCharArray23[5]);
-		alarm[279]=Character.getNumericValue(alarmCharArray23[4]);
+		alarm[272]=Character.getNumericValue(solarStatusMod20AlarmArray[3]);
+		alarm[273]=Character.getNumericValue(solarStatusMod20AlarmArray[2]);
+		alarm[274]=Character.getNumericValue(solarStatusMod20AlarmArray[1]);
+		alarm[275]=Character.getNumericValue(solarStatusMod20AlarmArray[0]);
+		alarm[276]=Character.getNumericValue(solarStatusMod20AlarmArray[7]);
+		alarm[277]=Character.getNumericValue(solarStatusMod20AlarmArray[6]);
+		alarm[278]=Character.getNumericValue(solarStatusMod20AlarmArray[5]);
+		alarm[279]=Character.getNumericValue(solarStatusMod20AlarmArray[4]);
 		/*Solar 21*/
-		alarm[280]=Character.getNumericValue(alarmCharArray24[3]);
-		alarm[281]=Character.getNumericValue(alarmCharArray24[2]);
-		alarm[282]=Character.getNumericValue(alarmCharArray24[1]);
-		alarm[283]=Character.getNumericValue(alarmCharArray24[0]);
-		alarm[284]=Character.getNumericValue(alarmCharArray24[7]);
-		alarm[285]=Character.getNumericValue(alarmCharArray24[6]);
-		alarm[286]=Character.getNumericValue(alarmCharArray24[5]);
-		alarm[287]=Character.getNumericValue(alarmCharArray24[4]);
+		alarm[280]=Character.getNumericValue(solarStatusMod21AlarmArray[3]);
+		alarm[281]=Character.getNumericValue(solarStatusMod21AlarmArray[2]);
+		alarm[282]=Character.getNumericValue(solarStatusMod21AlarmArray[1]);
+		alarm[283]=Character.getNumericValue(solarStatusMod21AlarmArray[0]);
+		alarm[284]=Character.getNumericValue(solarStatusMod21AlarmArray[7]);
+		alarm[285]=Character.getNumericValue(solarStatusMod21AlarmArray[6]);
+		alarm[286]=Character.getNumericValue(solarStatusMod21AlarmArray[5]);
+		alarm[287]=Character.getNumericValue(solarStatusMod21AlarmArray[4]);
 		/*Solar 22*/
-		alarm[288]=Character.getNumericValue(alarmCharArray25[3]);
-		alarm[289]=Character.getNumericValue(alarmCharArray25[2]);
-		alarm[290]=Character.getNumericValue(alarmCharArray25[1]);
-		alarm[291]=Character.getNumericValue(alarmCharArray25[0]);
-		alarm[292]=Character.getNumericValue(alarmCharArray25[7]);
-		alarm[293]=Character.getNumericValue(alarmCharArray25[6]);
-		alarm[294]=Character.getNumericValue(alarmCharArray25[5]);
-		alarm[295]=Character.getNumericValue(alarmCharArray25[4]);
+		alarm[288]=Character.getNumericValue(solarStatusMod22AlarmArray[3]);
+		alarm[289]=Character.getNumericValue(solarStatusMod22AlarmArray[2]);
+		alarm[290]=Character.getNumericValue(solarStatusMod22AlarmArray[1]);
+		alarm[291]=Character.getNumericValue(solarStatusMod22AlarmArray[0]);
+		alarm[292]=Character.getNumericValue(solarStatusMod22AlarmArray[7]);
+		alarm[293]=Character.getNumericValue(solarStatusMod22AlarmArray[6]);
+		alarm[294]=Character.getNumericValue(solarStatusMod22AlarmArray[5]);
+		alarm[295]=Character.getNumericValue(solarStatusMod22AlarmArray[4]);
 		/*Solar 23*/
-		alarm[296]=Character.getNumericValue(alarmCharArray26[3]);
-		alarm[297]=Character.getNumericValue(alarmCharArray26[2]);
-		alarm[298]=Character.getNumericValue(alarmCharArray26[1]);
-		alarm[299]=Character.getNumericValue(alarmCharArray26[0]);
-		alarm[300]=Character.getNumericValue(alarmCharArray26[7]);
-		alarm[301]=Character.getNumericValue(alarmCharArray26[6]);
-		alarm[302]=Character.getNumericValue(alarmCharArray26[5]);
-		alarm[303]=Character.getNumericValue(alarmCharArray26[4]);
+		alarm[296]=Character.getNumericValue(solarStatusMod23AlarmArray[3]);
+		alarm[297]=Character.getNumericValue(solarStatusMod23AlarmArray[2]);
+		alarm[298]=Character.getNumericValue(solarStatusMod23AlarmArray[1]);
+		alarm[299]=Character.getNumericValue(solarStatusMod23AlarmArray[0]);
+		alarm[300]=Character.getNumericValue(solarStatusMod23AlarmArray[7]);
+		alarm[301]=Character.getNumericValue(solarStatusMod23AlarmArray[6]);
+		alarm[302]=Character.getNumericValue(solarStatusMod23AlarmArray[5]);
+		alarm[303]=Character.getNumericValue(solarStatusMod23AlarmArray[4]);
 
 		/*Solar 24*/
-		alarm[304]=Character.getNumericValue(alarmCharArray27[3]);
-		alarm[305]=Character.getNumericValue(alarmCharArray27[2]);
-		alarm[306]=Character.getNumericValue(alarmCharArray27[1]);
-		alarm[307]=Character.getNumericValue(alarmCharArray27[0]);
-		alarm[308]=Character.getNumericValue(alarmCharArray27[7]);
-		alarm[309]=Character.getNumericValue(alarmCharArray27[6]);
-		alarm[310]=Character.getNumericValue(alarmCharArray27[5]);
-		alarm[311]=Character.getNumericValue(alarmCharArray27[4]);
+		alarm[304]=Character.getNumericValue(solarStatusMod24AlarmArray[3]);
+		alarm[305]=Character.getNumericValue(solarStatusMod24AlarmArray[2]);
+		alarm[306]=Character.getNumericValue(solarStatusMod24AlarmArray[1]);
+		alarm[307]=Character.getNumericValue(solarStatusMod24AlarmArray[0]);
+		alarm[308]=Character.getNumericValue(solarStatusMod24AlarmArray[7]);
+		alarm[309]=Character.getNumericValue(solarStatusMod24AlarmArray[6]);
+		alarm[310]=Character.getNumericValue(solarStatusMod24AlarmArray[5]);
+		alarm[311]=Character.getNumericValue(solarStatusMod24AlarmArray[4]);
 
 		/*Inv 1*/
-		alarm[312]=Character.getNumericValue(alarmCharArray28[3]);
-		alarm[313]=Character.getNumericValue(alarmCharArray28[2]);
-		alarm[314]=Character.getNumericValue(alarmCharArray28[1]);
-		alarm[315]=Character.getNumericValue(alarmCharArray28[0]);
-		alarm[316]=Character.getNumericValue(alarmCharArray28[7]);
-		alarm[317]=Character.getNumericValue(alarmCharArray28[6]);
-		alarm[318]=Character.getNumericValue(alarmCharArray28[5]);
-		alarm[319]=Character.getNumericValue(alarmCharArray28[4]);
+		alarm[312]=Character.getNumericValue(invStatus1AlarmArray[3]);
+		alarm[313]=Character.getNumericValue(invStatus1AlarmArray[2]);
+		alarm[314]=Character.getNumericValue(invStatus1AlarmArray[1]);
+		alarm[315]=Character.getNumericValue(invStatus1AlarmArray[0]);
+		alarm[316]=Character.getNumericValue(invStatus1AlarmArray[7]);
+		alarm[317]=Character.getNumericValue(invStatus1AlarmArray[6]);
+		alarm[318]=Character.getNumericValue(invStatus1AlarmArray[5]);
+		alarm[319]=Character.getNumericValue(invStatus1AlarmArray[4]);
 
 		/*Inv2*/
-		alarm[320]=Character.getNumericValue(alarmCharArray29[3]);
-		alarm[321]=Character.getNumericValue(alarmCharArray29[2]);
-		alarm[322]=Character.getNumericValue(alarmCharArray29[1]);
-		alarm[323]=Character.getNumericValue(alarmCharArray29[0]);
-		alarm[324]=Character.getNumericValue(alarmCharArray29[7]);
-		alarm[325]=Character.getNumericValue(alarmCharArray29[6]);
-		alarm[326]=Character.getNumericValue(alarmCharArray29[5]);
-		alarm[327]=Character.getNumericValue(alarmCharArray29[4]);
+		alarm[320]=Character.getNumericValue(invStatus2AlarmArray[3]);
+		alarm[321]=Character.getNumericValue(invStatus2AlarmArray[2]);
+		alarm[322]=Character.getNumericValue(invStatus2AlarmArray[1]);
+		alarm[323]=Character.getNumericValue(invStatus2AlarmArray[0]);
+		alarm[324]=Character.getNumericValue(invStatus2AlarmArray[7]);
+		alarm[325]=Character.getNumericValue(invStatus2AlarmArray[6]);
+		alarm[326]=Character.getNumericValue(invStatus2AlarmArray[5]);
+		alarm[327]=Character.getNumericValue(invStatus2AlarmArray[4]);
 
 		/*Inv3*/
-		alarm[328]=Character.getNumericValue(alarmCharArray30[3]);
-		alarm[329]=Character.getNumericValue(alarmCharArray30[2]);
-		alarm[330]=Character.getNumericValue(alarmCharArray30[1]);
-		alarm[331]=Character.getNumericValue(alarmCharArray30[0]);
-		alarm[332]=Character.getNumericValue(alarmCharArray30[7]);
-		alarm[333]=Character.getNumericValue(alarmCharArray30[6]);
-		alarm[334]=Character.getNumericValue(alarmCharArray30[5]);
-		alarm[335]=Character.getNumericValue(alarmCharArray30[4]);
+		alarm[328]=Character.getNumericValue(invStatus3AlarmArray[3]);
+		alarm[329]=Character.getNumericValue(invStatus3AlarmArray[2]);
+		alarm[330]=Character.getNumericValue(invStatus3AlarmArray[1]);
+		alarm[331]=Character.getNumericValue(invStatus3AlarmArray[0]);
+		alarm[332]=Character.getNumericValue(invStatus3AlarmArray[7]);
+		alarm[333]=Character.getNumericValue(invStatus3AlarmArray[6]);
+		alarm[334]=Character.getNumericValue(invStatus3AlarmArray[5]);
+		alarm[335]=Character.getNumericValue(invStatus3AlarmArray[4]);
 
 		/*Inv4*/
-		alarm[336]=Character.getNumericValue(alarmCharArray31[3]);
-		alarm[337]=Character.getNumericValue(alarmCharArray31[2]);
-		alarm[338]=Character.getNumericValue(alarmCharArray31[1]);
-		alarm[339]=Character.getNumericValue(alarmCharArray31[0]);
-		alarm[340]=Character.getNumericValue(alarmCharArray31[7]);
-		alarm[341]=Character.getNumericValue(alarmCharArray31[6]);
-		alarm[342]=Character.getNumericValue(alarmCharArray31[5]);
-		alarm[343]=Character.getNumericValue(alarmCharArray31[4]);
+		alarm[336]=Character.getNumericValue(invStatus4AlarmArray[3]);
+		alarm[337]=Character.getNumericValue(invStatus4AlarmArray[2]);
+		alarm[338]=Character.getNumericValue(invStatus4AlarmArray[1]);
+		alarm[339]=Character.getNumericValue(invStatus4AlarmArray[0]);
+		alarm[340]=Character.getNumericValue(invStatus4AlarmArray[7]);
+		alarm[341]=Character.getNumericValue(invStatus4AlarmArray[6]);
+		alarm[342]=Character.getNumericValue(invStatus4AlarmArray[5]);
+		alarm[343]=Character.getNumericValue(invStatus4AlarmArray[4]);
 
 		/*Inv5*/
-		alarm[344]=Character.getNumericValue(alarmCharArray32[3]);
-		alarm[345]=Character.getNumericValue(alarmCharArray32[2]);
-		alarm[346]=Character.getNumericValue(alarmCharArray32[1]);
-		alarm[347]=Character.getNumericValue(alarmCharArray32[0]);
-		alarm[348]=Character.getNumericValue(alarmCharArray32[7]);
-		alarm[349]=Character.getNumericValue(alarmCharArray32[6]);
-		alarm[350]=Character.getNumericValue(alarmCharArray32[5]);
-		alarm[351]=Character.getNumericValue(alarmCharArray32[4]);
+		alarm[344]=Character.getNumericValue(invStatus5AlarmArray[3]);
+		alarm[345]=Character.getNumericValue(invStatus5AlarmArray[2]);
+		alarm[346]=Character.getNumericValue(invStatus5AlarmArray[1]);
+		alarm[347]=Character.getNumericValue(invStatus5AlarmArray[0]);
+		alarm[348]=Character.getNumericValue(invStatus5AlarmArray[7]);
+		alarm[349]=Character.getNumericValue(invStatus5AlarmArray[6]);
+		alarm[350]=Character.getNumericValue(invStatus5AlarmArray[5]);
+		alarm[351]=Character.getNumericValue(invStatus5AlarmArray[4]);
 		/*Inv6*/
 
-		alarm[352]=Character.getNumericValue(alarmCharArray33[3]);
-		alarm[353]=Character.getNumericValue(alarmCharArray33[2]);
-		alarm[354]=Character.getNumericValue(alarmCharArray33[1]);
-		alarm[355]=Character.getNumericValue(alarmCharArray33[0]);
-		alarm[356]=Character.getNumericValue(alarmCharArray33[7]);
-		alarm[357]=Character.getNumericValue(alarmCharArray33[6]);
-		alarm[358]=Character.getNumericValue(alarmCharArray33[5]);
-		alarm[359]=Character.getNumericValue(alarmCharArray33[4]);
+		alarm[352]=Character.getNumericValue(invStatus6AlarmArray[3]);
+		alarm[353]=Character.getNumericValue(invStatus6AlarmArray[2]);
+		alarm[354]=Character.getNumericValue(invStatus6AlarmArray[1]);
+		alarm[355]=Character.getNumericValue(invStatus6AlarmArray[0]);
+		alarm[356]=Character.getNumericValue(invStatus6AlarmArray[7]);
+		alarm[357]=Character.getNumericValue(invStatus6AlarmArray[6]);
+		alarm[358]=Character.getNumericValue(invStatus6AlarmArray[5]);
+		alarm[359]=Character.getNumericValue(invStatus6AlarmArray[4]);
 
 		/*Inv7*/
-		alarm[360]=Character.getNumericValue(alarmCharArray34[3]);
-		alarm[361]=Character.getNumericValue(alarmCharArray34[2]);
-		alarm[362]=Character.getNumericValue(alarmCharArray34[1]);
-		alarm[363]=Character.getNumericValue(alarmCharArray34[0]);
-		alarm[364]=Character.getNumericValue(alarmCharArray34[7]);
-		alarm[365]=Character.getNumericValue(alarmCharArray34[6]);
-		alarm[366]=Character.getNumericValue(alarmCharArray34[5]);
-		alarm[367]=Character.getNumericValue(alarmCharArray34[4]);
+		alarm[360]=Character.getNumericValue(invStatus7AlarmArray[3]);
+		alarm[361]=Character.getNumericValue(invStatus7AlarmArray[2]);
+		alarm[362]=Character.getNumericValue(invStatus7AlarmArray[1]);
+		alarm[363]=Character.getNumericValue(invStatus7AlarmArray[0]);
+		alarm[364]=Character.getNumericValue(invStatus7AlarmArray[7]);
+		alarm[365]=Character.getNumericValue(invStatus7AlarmArray[6]);
+		alarm[366]=Character.getNumericValue(invStatus7AlarmArray[5]);
+		alarm[367]=Character.getNumericValue(invStatus7AlarmArray[4]);
 
 		/*Inv8*/
-		alarm[368]=Character.getNumericValue(alarmCharArray35[3]);
-		alarm[369]=Character.getNumericValue(alarmCharArray35[2]);
-		alarm[370]=Character.getNumericValue(alarmCharArray35[1]);
-		alarm[371]=Character.getNumericValue(alarmCharArray35[0]);
-		alarm[372]=Character.getNumericValue(alarmCharArray35[7]);
-		alarm[373]=Character.getNumericValue(alarmCharArray35[6]);
-		alarm[374]=Character.getNumericValue(alarmCharArray35[5]);
-		alarm[375]=Character.getNumericValue(alarmCharArray35[4]);
+		alarm[368]=Character.getNumericValue(invStatus8AlarmArray[3]);
+		alarm[369]=Character.getNumericValue(invStatus8AlarmArray[2]);
+		alarm[370]=Character.getNumericValue(invStatus8AlarmArray[1]);
+		alarm[371]=Character.getNumericValue(invStatus8AlarmArray[0]);
+		alarm[372]=Character.getNumericValue(invStatus8AlarmArray[7]);
+		alarm[373]=Character.getNumericValue(invStatus8AlarmArray[6]);
+		alarm[374]=Character.getNumericValue(invStatus8AlarmArray[5]);
+		alarm[375]=Character.getNumericValue(invStatus8AlarmArray[4]);
 
 		/*Inv9*/
-		alarm[376]=Character.getNumericValue(alarmCharArray36[3]);
-		alarm[377]=Character.getNumericValue(alarmCharArray36[2]);
-		alarm[378]=Character.getNumericValue(alarmCharArray36[1]);
-		alarm[379]=Character.getNumericValue(alarmCharArray36[0]);
-		alarm[380]=Character.getNumericValue(alarmCharArray36[7]);
-		alarm[381]=Character.getNumericValue(alarmCharArray36[6]);
-		alarm[382]=Character.getNumericValue(alarmCharArray36[5]);
-		alarm[383]=Character.getNumericValue(alarmCharArray36[4]);
+		alarm[376]=Character.getNumericValue(invStatus9AlarmArray[3]);
+		alarm[377]=Character.getNumericValue(invStatus9AlarmArray[2]);
+		alarm[378]=Character.getNumericValue(invStatus9AlarmArray[1]);
+		alarm[379]=Character.getNumericValue(invStatus9AlarmArray[0]);
+		alarm[380]=Character.getNumericValue(invStatus9AlarmArray[7]);
+		alarm[381]=Character.getNumericValue(invStatus9AlarmArray[6]);
+		alarm[382]=Character.getNumericValue(invStatus9AlarmArray[5]);
+		alarm[383]=Character.getNumericValue(invStatus9AlarmArray[4]);
 
 		/*Inv10*/
-		alarm[384]=Character.getNumericValue(alarmCharArray37[3]);
-		alarm[385]=Character.getNumericValue(alarmCharArray37[2]);
-		alarm[386]=Character.getNumericValue(alarmCharArray37[1]);
-		alarm[387]=Character.getNumericValue(alarmCharArray37[0]);
-		alarm[388]=Character.getNumericValue(alarmCharArray37[7]);
-		alarm[389]=Character.getNumericValue(alarmCharArray37[6]);
-		alarm[390]=Character.getNumericValue(alarmCharArray37[5]);
-		alarm[391]=Character.getNumericValue(alarmCharArray37[4]);
+		alarm[384]=Character.getNumericValue(invStatus10AlarmArray[3]);
+		alarm[385]=Character.getNumericValue(invStatus10AlarmArray[2]);
+		alarm[386]=Character.getNumericValue(invStatus10AlarmArray[1]);
+		alarm[387]=Character.getNumericValue(invStatus10AlarmArray[0]);
+		alarm[388]=Character.getNumericValue(invStatus10AlarmArray[7]);
+		alarm[389]=Character.getNumericValue(invStatus10AlarmArray[6]);
+		alarm[390]=Character.getNumericValue(invStatus10AlarmArray[5]);
+		alarm[391]=Character.getNumericValue(invStatus10AlarmArray[4]);
 
 		/*Inv 11*/
-		alarm[392]=Character.getNumericValue(alarmCharArray38[3]);
-		alarm[393]=Character.getNumericValue(alarmCharArray38[2]);
-		alarm[394]=Character.getNumericValue(alarmCharArray38[1]);
-		alarm[395]=Character.getNumericValue(alarmCharArray38[0]);
-		alarm[396]=Character.getNumericValue(alarmCharArray38[7]);
-		alarm[397]=Character.getNumericValue(alarmCharArray38[6]);
-		alarm[398]=Character.getNumericValue(alarmCharArray38[5]);
-		alarm[399]=Character.getNumericValue(alarmCharArray38[4]);
+		alarm[392]=Character.getNumericValue(invStatus11AlarmArray[3]);
+		alarm[393]=Character.getNumericValue(invStatus11AlarmArray[2]);
+		alarm[394]=Character.getNumericValue(invStatus11AlarmArray[1]);
+		alarm[395]=Character.getNumericValue(invStatus11AlarmArray[0]);
+		alarm[396]=Character.getNumericValue(invStatus11AlarmArray[7]);
+		alarm[397]=Character.getNumericValue(invStatus11AlarmArray[6]);
+		alarm[398]=Character.getNumericValue(invStatus11AlarmArray[5]);
+		alarm[399]=Character.getNumericValue(invStatus11AlarmArray[4]);
 
 		/*Inv12*/
-		alarm[400]=Character.getNumericValue(alarmCharArray39[3]);
-		alarm[401]=Character.getNumericValue(alarmCharArray39[2]);
-		alarm[402]=Character.getNumericValue(alarmCharArray39[1]);
-		alarm[403]=Character.getNumericValue(alarmCharArray39[0]);
-		alarm[404]=Character.getNumericValue(alarmCharArray39[7]);
-		alarm[405]=Character.getNumericValue(alarmCharArray39[6]);
-		alarm[406]=Character.getNumericValue(alarmCharArray39[5]);
-		alarm[407]=Character.getNumericValue(alarmCharArray39[4]);
+		alarm[400]=Character.getNumericValue(invStatus12AlarmArray[3]);
+		alarm[401]=Character.getNumericValue(invStatus12AlarmArray[2]);
+		alarm[402]=Character.getNumericValue(invStatus12AlarmArray[1]);
+		alarm[403]=Character.getNumericValue(invStatus12AlarmArray[0]);
+		alarm[404]=Character.getNumericValue(invStatus12AlarmArray[7]);
+		alarm[405]=Character.getNumericValue(invStatus12AlarmArray[6]);
+		alarm[406]=Character.getNumericValue(invStatus12AlarmArray[5]);
+		alarm[407]=Character.getNumericValue(invStatus12AlarmArray[4]);
 
 		/*Li1 Byte 1 Set 1*/
 		alarm[408]=Character.getNumericValue(liAlarm1[3]);
@@ -2198,49 +1532,53 @@ public class AlarmProcessing {
 		alarm[1045]=Character.getNumericValue(liAlarm20[30]);
 		alarm[1046]=Character.getNumericValue(liAlarm20[29]);
 		alarm[1047]=Character.getNumericValue(liAlarm20[28]);
+		
+		logger.info("Alarm Parsing Completed for site: "+siteCode);
+		logger.info("Alarm Processing Started for site: "+siteCode);
 
-		HashMap<String,Integer> alrmList1 = new HashMap<String,Integer>();
-		HashMap<String,Integer> alrmList2 = new HashMap<String,Integer>();
-		
-		HashMap<String,String> alrmList3 = new HashMap<String,String>();
-		HashMap<String,Integer> alrmList4 = new HashMap<String,Integer>();
-		
+		HashMap<String,Integer> pinConnectedMap = new HashMap<String,Integer>();
+		HashMap<String,Integer> ttCreationMap = new HashMap<String,Integer>();
+		HashMap<String,String> alarmNameMap = new HashMap<String,String>();
+		HashMap<String,Integer> pinCriticallyMap = new HashMap<String,Integer>();
+
 		Connection connObj = null;
 		PreparedStatement pstmtObj = null;
 		ConnectionPool jdbcObj = new ConnectionPool();
 		try {   
 			DataSource dataSource = jdbcObj.setUpPool();
-			jdbcObj.printDbStatus();
 
-			System.out.println("\n=====Making A New Connection Object For Db Transaction=====\n");
+			logger.info("\n=====Making A New Connection Object For Db Transaction=====\n");
 			connObj = dataSource.getConnection();
 			jdbcObj.printDbStatus(); 
 
 			pstmtObj = connObj.prepareStatement("Select * from alarmlabel");
-			ResultSet rsObj2 = pstmtObj.executeQuery();
-			while(rsObj2.next()){
-				alrmList1.put(rsObj2.getString("alPinID"), rsObj2.getInt("alIsPinConnected"));
-				alrmList2.put(rsObj2.getString("alPinID"), rsObj2.getInt("ttCreationrequired"));
-				alrmList3.put(rsObj2.getString("alPinID"), rsObj2.getString("alName"));
-				alrmList4.put(rsObj2.getString("alPinID"), rsObj2.getInt("alPinCriticality"));
+			ResultSet rsAlarmLabel = pstmtObj.executeQuery();
+
+			while(rsAlarmLabel.next()) {
+				pinConnectedMap.put(rsAlarmLabel.getString("alPinID"), rsAlarmLabel.getInt("alIsPinConnected"));
+				ttCreationMap.put(rsAlarmLabel.getString("alPinID"), rsAlarmLabel.getInt("ttCreationrequired"));
+				alarmNameMap.put(rsAlarmLabel.getString("alPinID"), rsAlarmLabel.getString("alName"));
+				pinCriticallyMap.put(rsAlarmLabel.getString("alPinID"), rsAlarmLabel.getInt("alPinCriticality"));
 			}
 			pstmtObj.close();
-			rsObj2.close();
+			rsAlarmLabel.close();
 
 			pstmtObj = connObj.prepareStatement("Select * from trans_alarmlaststatus where smSiteCode "
-					+ "='"+siteId+"'");
+					+ "='"+siteCode+"'");
 
-			ResultSet rsObj = pstmtObj.executeQuery();
-			boolean isResult = rsObj.next();
+			ResultSet rsAlarmLastStatus = pstmtObj.executeQuery();
+			boolean isDataInTransAlarmLastStatus = rsAlarmLastStatus.next();
+
 			int [] alarmLastStatus = new int [1048];
 			/*
 			 * In trans_alarmstatus if no data
 			 * insert it first time
 			 */
-			if(isResult == false) {
+			if(isDataInTransAlarmLastStatus == false) {
 				//Query3
 				pstmtObj = connObj.prepareStatement("insert into trans_alarmlaststatus(smSiteCode,alsTimestamp,Alarm_1,Alarm_2,Alarm_3,Alarm_4,Alarm_5,Alarm_6,Alarm_7,Alarm_8,Alarm_9,Alarm_10,Alarm_11,Alarm_12,Alarm_13,Alarm_14,Alarm_15,Alarm_16,Alarm_17,Alarm_18,Alarm_19,Alarm_20,Alarm_21,Alarm_22,Alarm_23,Alarm_24,Alarm_25,Alarm_26,Alarm_27,Alarm_28,Alarm_29,Alarm_30,Alarm_31,Alarm_32,Alarm_33,Alarm_34,Alarm_35,Alarm_36,Alarm_37,Alarm_38,Alarm_39,Alarm_40,Alarm_41,Alarm_42,Alarm_43,Alarm_44,Alarm_45,Alarm_46,Alarm_47,Alarm_48,Alarm_49,Alarm_50,Alarm_51,Alarm_52,Alarm_53,Alarm_54,Alarm_55,Alarm_56,Alarm_57,Alarm_58,Alarm_59,Alarm_60,Alarm_61,Alarm_62,Alarm_63,Alarm_64,Alarm_65,Alarm_66,Alarm_67,Alarm_68,Alarm_69,Alarm_70,Alarm_71,Alarm_72,Alarm_73,Alarm_74,Alarm_75,Alarm_76,Alarm_77,Alarm_78,Alarm_79,Alarm_80,Alarm_81,Alarm_82,Alarm_83,Alarm_84,Alarm_85,Alarm_86,Alarm_87,Alarm_88,Alarm_89,Alarm_90,Alarm_91,Alarm_92,Alarm_93,Alarm_94,Alarm_95,Alarm_96,Alarm_97,Alarm_98,Alarm_99,Alarm_100,Alarm_101,Alarm_102,Alarm_103,Alarm_104,Alarm_105,Alarm_106,Alarm_107,Alarm_108,Alarm_109,Alarm_110,Alarm_111,Alarm_112,Alarm_113,Alarm_114,Alarm_115,Alarm_116,Alarm_117,Alarm_118,Alarm_119,Alarm_120,Alarm_121,Alarm_122,Alarm_123,Alarm_124,Alarm_125,Alarm_126,Alarm_127,Alarm_128,Alarm_129,Alarm_130,Alarm_131,Alarm_132,Alarm_133,Alarm_134,Alarm_135,Alarm_136,Alarm_137,Alarm_138,Alarm_139,Alarm_140,Alarm_141,Alarm_142,Alarm_143,Alarm_144,Alarm_145,Alarm_146,Alarm_147,Alarm_148,Alarm_149,Alarm_150,Alarm_151,Alarm_152,Alarm_153,Alarm_154,Alarm_155,Alarm_156,Alarm_157,Alarm_158,Alarm_159,Alarm_160,Alarm_161,Alarm_162,Alarm_163,Alarm_164,Alarm_165,Alarm_166,Alarm_167,Alarm_168,Alarm_169,Alarm_170,Alarm_171,Alarm_172,Alarm_173,Alarm_174,Alarm_175,Alarm_176,Alarm_177,Alarm_178,Alarm_179,Alarm_180,Alarm_181,Alarm_182,Alarm_183,Alarm_184,Alarm_185,Alarm_186,Alarm_187,Alarm_188,Alarm_189,Alarm_190,Alarm_191,Alarm_192,Alarm_193,Alarm_194,Alarm_195,Alarm_196,Alarm_197,Alarm_198,Alarm_199,Alarm_200,Alarm_201,Alarm_202,Alarm_203,Alarm_204,Alarm_205,Alarm_206,Alarm_207,Alarm_208,Alarm_209,Alarm_210,Alarm_211,Alarm_212,Alarm_213,Alarm_214,Alarm_215,Alarm_216,Alarm_217,Alarm_218,Alarm_219,Alarm_220,Alarm_221,Alarm_222,Alarm_223,Alarm_224,Alarm_225,Alarm_226,Alarm_227,Alarm_228,Alarm_229,Alarm_230,Alarm_231,Alarm_232,Alarm_233,Alarm_234,Alarm_235,Alarm_236,Alarm_237,Alarm_238,Alarm_239,Alarm_240,Alarm_241,Alarm_242,Alarm_243,Alarm_244,Alarm_245,Alarm_246,Alarm_247,Alarm_248,Alarm_249,Alarm_250,Alarm_251,Alarm_252,Alarm_253,Alarm_254,Alarm_255,Alarm_256,Alarm_257,Alarm_258,Alarm_259,Alarm_260,Alarm_261,Alarm_262,Alarm_263,Alarm_264,Alarm_265,Alarm_266,Alarm_267,Alarm_268,Alarm_269,Alarm_270,Alarm_271,Alarm_272,Alarm_273,Alarm_274,Alarm_275,Alarm_276,Alarm_277,Alarm_278,Alarm_279,Alarm_280,Alarm_281,Alarm_282,Alarm_283,Alarm_284,Alarm_285,Alarm_286,Alarm_287,Alarm_288,Alarm_289,Alarm_290,Alarm_291,Alarm_292,Alarm_293,Alarm_294,Alarm_295,Alarm_296,Alarm_297,Alarm_298,Alarm_299,Alarm_300,Alarm_301,Alarm_302,Alarm_303,Alarm_304,Alarm_305,Alarm_306,Alarm_307,Alarm_308,Alarm_309,Alarm_310,Alarm_311,Alarm_312,Alarm_313,Alarm_314,Alarm_315,Alarm_316,Alarm_317,Alarm_318,Alarm_319,Alarm_320,Alarm_321,Alarm_322,Alarm_323,Alarm_324,Alarm_325,Alarm_326,Alarm_327,Alarm_328,Alarm_329,Alarm_330,Alarm_331,Alarm_332,Alarm_333,Alarm_334,Alarm_335,Alarm_336,Alarm_337,Alarm_338,Alarm_339,Alarm_340,Alarm_341,Alarm_342,Alarm_343,Alarm_344,Alarm_345,Alarm_346,Alarm_347,Alarm_348,Alarm_349,Alarm_350,Alarm_351,Alarm_352,Alarm_353,Alarm_354,Alarm_355,Alarm_356,Alarm_357,Alarm_358,Alarm_359,Alarm_360,Alarm_361,Alarm_362,Alarm_363,Alarm_364,Alarm_365,Alarm_366,Alarm_367,Alarm_368,Alarm_369,Alarm_370,Alarm_371,Alarm_372,Alarm_373,Alarm_374,Alarm_375,Alarm_376,Alarm_377,Alarm_378,Alarm_379,Alarm_380,Alarm_381,Alarm_382,Alarm_383,Alarm_384,Alarm_385,Alarm_386,Alarm_387,Alarm_388,Alarm_389,Alarm_390,Alarm_391,Alarm_392,Alarm_393,Alarm_394,Alarm_395,Alarm_396,Alarm_397,Alarm_398,Alarm_399,Alarm_400,Alarm_401,Alarm_402,Alarm_403,Alarm_404,Alarm_405,Alarm_406,Alarm_407,Alarm_408,smSiteID,smSitetypeid,DBCreationTimestamp) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
-				pstmtObj.setString(1,siteId);
+
+				pstmtObj.setString(1,siteCode);
 				pstmtObj.setLong(2 ,_recordtime);
 				pstmtObj.setInt(3,alarm[0]);
 				pstmtObj.setInt(4 ,alarm[1]);
@@ -2652,18 +1990,17 @@ public class AlarmProcessing {
 				pstmtObj.setInt(410, alarm[407]);
 				pstmtObj.setInt(411, smSiteId);
 				pstmtObj.setInt(412, smSitetypeid);
-				
 				pstmtObj.setLong(413,dbCreationTime);
-				
-				int result  = pstmtObj.executeUpdate();	
-				System.out.println(result);
+
+				pstmtObj.executeUpdate();	
+				logger.info("Alarm Inserted into trans_alarmlaststatus for first time for site: "+siteCode);
 
 
 				/* Insert into trans_alarmhistory */
 				//Query2
 				pstmtObj = connObj.prepareStatement("insert into trans_alarmdatahistory(smSiteCode,alhTimestamp,Alarm_1,Alarm_2,Alarm_3,Alarm_4,Alarm_5,Alarm_6,Alarm_7,Alarm_8,Alarm_9,Alarm_10,Alarm_11,Alarm_12,Alarm_13,Alarm_14,Alarm_15,Alarm_16,Alarm_17,Alarm_18,Alarm_19,Alarm_20,Alarm_21,Alarm_22,Alarm_23,Alarm_24,Alarm_25,Alarm_26,Alarm_27,Alarm_28,Alarm_29,Alarm_30,Alarm_31,Alarm_32,Alarm_33,Alarm_34,Alarm_35,Alarm_36,Alarm_37,Alarm_38,Alarm_39,Alarm_40,Alarm_41,Alarm_42,Alarm_43,Alarm_44,Alarm_45,Alarm_46,Alarm_47,Alarm_48,Alarm_49,Alarm_50,Alarm_51,Alarm_52,Alarm_53,Alarm_54,Alarm_55,Alarm_56,Alarm_57,Alarm_58,Alarm_59,Alarm_60,Alarm_61,Alarm_62,Alarm_63,Alarm_64,Alarm_65,Alarm_66,Alarm_67,Alarm_68,Alarm_69,Alarm_70,Alarm_71,Alarm_72,Alarm_73,Alarm_74,Alarm_75,Alarm_76,Alarm_77,Alarm_78,Alarm_79,Alarm_80,Alarm_81,Alarm_82,Alarm_83,Alarm_84,Alarm_85,Alarm_86,Alarm_87,Alarm_88,Alarm_89,Alarm_90,Alarm_91,Alarm_92,Alarm_93,Alarm_94,Alarm_95,Alarm_96,Alarm_97,Alarm_98,Alarm_99,Alarm_100,Alarm_101,Alarm_102,Alarm_103,Alarm_104,Alarm_105,Alarm_106,Alarm_107,Alarm_108,Alarm_109,Alarm_110,Alarm_111,Alarm_112,Alarm_113,Alarm_114,Alarm_115,Alarm_116,Alarm_117,Alarm_118,Alarm_119,Alarm_120,Alarm_121,Alarm_122,Alarm_123,Alarm_124,Alarm_125,Alarm_126,Alarm_127,Alarm_128,Alarm_129,Alarm_130,Alarm_131,Alarm_132,Alarm_133,Alarm_134,Alarm_135,Alarm_136,Alarm_137,Alarm_138,Alarm_139,Alarm_140,Alarm_141,Alarm_142,Alarm_143,Alarm_144,Alarm_145,Alarm_146,Alarm_147,Alarm_148,Alarm_149,Alarm_150,Alarm_151,Alarm_152,Alarm_153,Alarm_154,Alarm_155,Alarm_156,Alarm_157,Alarm_158,Alarm_159,Alarm_160,Alarm_161,Alarm_162,Alarm_163,Alarm_164,Alarm_165,Alarm_166,Alarm_167,Alarm_168,Alarm_169,Alarm_170,Alarm_171,Alarm_172,Alarm_173,Alarm_174,Alarm_175,Alarm_176,Alarm_177,Alarm_178,Alarm_179,Alarm_180,Alarm_181,Alarm_182,Alarm_183,Alarm_184,Alarm_185,Alarm_186,Alarm_187,Alarm_188,Alarm_189,Alarm_190,Alarm_191,Alarm_192,Alarm_193,Alarm_194,Alarm_195,Alarm_196,Alarm_197,Alarm_198,Alarm_199,Alarm_200,Alarm_201,Alarm_202,Alarm_203,Alarm_204,Alarm_205,Alarm_206,Alarm_207,Alarm_208,Alarm_209,Alarm_210,Alarm_211,Alarm_212,Alarm_213,Alarm_214,Alarm_215,Alarm_216,Alarm_217,Alarm_218,Alarm_219,Alarm_220,Alarm_221,Alarm_222,Alarm_223,Alarm_224,Alarm_225,Alarm_226,Alarm_227,Alarm_228,Alarm_229,Alarm_230,Alarm_231,Alarm_232,Alarm_233,Alarm_234,Alarm_235,Alarm_236,Alarm_237,Alarm_238,Alarm_239,Alarm_240,Alarm_241,Alarm_242,Alarm_243,Alarm_244,Alarm_245,Alarm_246,Alarm_247,Alarm_248,Alarm_249,Alarm_250,Alarm_251,Alarm_252,Alarm_253,Alarm_254,Alarm_255,Alarm_256,Alarm_257,Alarm_258,Alarm_259,Alarm_260,Alarm_261,Alarm_262,Alarm_263,Alarm_264,Alarm_265,Alarm_266,Alarm_267,Alarm_268,Alarm_269,Alarm_270,Alarm_271,Alarm_272,Alarm_273,Alarm_274,Alarm_275,Alarm_276,Alarm_277,Alarm_278,Alarm_279,Alarm_280,Alarm_281,Alarm_282,Alarm_283,Alarm_284,Alarm_285,Alarm_286,Alarm_287,Alarm_288,Alarm_289,Alarm_290,Alarm_291,Alarm_292,Alarm_293,Alarm_294,Alarm_295,Alarm_296,Alarm_297,Alarm_298,Alarm_299,Alarm_300,Alarm_301,Alarm_302,Alarm_303,Alarm_304,Alarm_305,Alarm_306,Alarm_307,Alarm_308,Alarm_309,Alarm_310,Alarm_311,Alarm_312,Alarm_313,Alarm_314,Alarm_315,Alarm_316,Alarm_317,Alarm_318,Alarm_319,Alarm_320,Alarm_321,Alarm_322,Alarm_323,Alarm_324,Alarm_325,Alarm_326,Alarm_327,Alarm_328,Alarm_329,Alarm_330,Alarm_331,Alarm_332,Alarm_333,Alarm_334,Alarm_335,Alarm_336,Alarm_337,Alarm_338,Alarm_339,Alarm_340,Alarm_341,Alarm_342,Alarm_343,Alarm_344,Alarm_345,Alarm_346,Alarm_347,Alarm_348,Alarm_349,Alarm_350,Alarm_351,Alarm_352,Alarm_353,Alarm_354,Alarm_355,Alarm_356,Alarm_357,Alarm_358,Alarm_359,Alarm_360,Alarm_361,Alarm_362,Alarm_363,Alarm_364,Alarm_365,Alarm_366,Alarm_367,Alarm_368,Alarm_369,Alarm_370,Alarm_371,Alarm_372,Alarm_373,Alarm_374,Alarm_375,Alarm_376,Alarm_377,Alarm_378,Alarm_379,Alarm_380,Alarm_381,Alarm_382,Alarm_383,Alarm_384,Alarm_385,Alarm_386,Alarm_387,Alarm_388,Alarm_389,Alarm_390,Alarm_391,Alarm_392,Alarm_393,Alarm_394,Alarm_395,Alarm_396,Alarm_397,Alarm_398,Alarm_399,Alarm_400,Alarm_401,Alarm_402,Alarm_403,Alarm_404,Alarm_405,Alarm_406,Alarm_407,Alarm_408,smSiteID,smSitetypeid,DBCreationTimestamp,hpDate) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
 
-				pstmtObj.setString(1,siteId);
+				pstmtObj.setString(1,siteCode);
 				pstmtObj.setLong(2,_recordtime);
 				pstmtObj.setInt(3,alarm[0]);
 				pstmtObj.setInt(4,alarm[1]);
@@ -3075,444 +2412,441 @@ public class AlarmProcessing {
 				pstmtObj.setInt(410,alarm[407]);
 				pstmtObj.setInt(411,smSiteId);
 				pstmtObj.setInt(412,smSitetypeid);
-				
 				pstmtObj.setLong(413,dbCreationTime);
 				pstmtObj.setDate(414, hpDate);
-				pstmtObj.executeUpdate();	
+				pstmtObj.executeUpdate();
+
+				logger.info("Alarm Record Inserted into trans_alarmdatahistory for site: "+siteCode);
 
 			} else {
-				
-				pstmtObj = connObj.prepareStatement("Select * from trans_alarmlaststatus where smSiteCode ='"+siteId+"'");
+
+				pstmtObj = connObj.prepareStatement("Select * from trans_alarmlaststatus where smSiteCode ='"+siteCode+"'");
 
 				ResultSet transResult = pstmtObj.executeQuery();
 				while(transResult.next()){
 
-					alarmLastStatus[0] = rsObj.getInt("Alarm_1");
-					alarmLastStatus[1] = rsObj.getInt("Alarm_2");
-					alarmLastStatus[2] = rsObj.getInt("Alarm_3");
-					alarmLastStatus[3] = rsObj.getInt("Alarm_4");
-					alarmLastStatus[4] = rsObj.getInt("Alarm_5");
-					alarmLastStatus[5] = rsObj.getInt("Alarm_6");
-					alarmLastStatus[6] = rsObj.getInt("Alarm_7");
-					alarmLastStatus[7] = rsObj.getInt("Alarm_8");
-					alarmLastStatus[8] = rsObj.getInt("Alarm_9");
-					alarmLastStatus[9] = rsObj.getInt("Alarm_10");
-					alarmLastStatus[10] = rsObj.getInt("Alarm_11");
-					alarmLastStatus[11] = rsObj.getInt("Alarm_12");
-					alarmLastStatus[12] = rsObj.getInt("Alarm_13");
-					alarmLastStatus[13] = rsObj.getInt("Alarm_14");
-					alarmLastStatus[14] = rsObj.getInt("Alarm_15");
-					alarmLastStatus[15] = rsObj.getInt("Alarm_16");
-					alarmLastStatus[16] = rsObj.getInt("Alarm_17");
-					alarmLastStatus[17] = rsObj.getInt("Alarm_18");
-					alarmLastStatus[18] = rsObj.getInt("Alarm_19");
-					alarmLastStatus[19] = rsObj.getInt("Alarm_20");
-					alarmLastStatus[20] = rsObj.getInt("Alarm_21");
-					alarmLastStatus[21] = rsObj.getInt("Alarm_22");
-					alarmLastStatus[22] = rsObj.getInt("Alarm_23");
-					alarmLastStatus[23] = rsObj.getInt("Alarm_24");
-					alarmLastStatus[24] = rsObj.getInt("Alarm_25");
-					alarmLastStatus[25] = rsObj.getInt("Alarm_26");
-					alarmLastStatus[26] = rsObj.getInt("Alarm_27");
-					alarmLastStatus[27] = rsObj.getInt("Alarm_28");
-					alarmLastStatus[28] = rsObj.getInt("Alarm_29");
-					alarmLastStatus[29] = rsObj.getInt("Alarm_30");
-					alarmLastStatus[30] = rsObj.getInt("Alarm_31");
-					alarmLastStatus[31] = rsObj.getInt("Alarm_32");
-					alarmLastStatus[32] = rsObj.getInt("Alarm_33");
-					alarmLastStatus[33] = rsObj.getInt("Alarm_34");
-					alarmLastStatus[34] = rsObj.getInt("Alarm_35");
-					alarmLastStatus[35] = rsObj.getInt("Alarm_36");
-					alarmLastStatus[36] = rsObj.getInt("Alarm_37");
-					alarmLastStatus[37] = rsObj.getInt("Alarm_38");
-					alarmLastStatus[38] = rsObj.getInt("Alarm_39");
-					alarmLastStatus[39] = rsObj.getInt("Alarm_40");
-					alarmLastStatus[40] = rsObj.getInt("Alarm_41");
-					alarmLastStatus[41] = rsObj.getInt("Alarm_42");
-					alarmLastStatus[42] = rsObj.getInt("Alarm_43");
-					alarmLastStatus[43] = rsObj.getInt("Alarm_44");
-					alarmLastStatus[44] = rsObj.getInt("Alarm_45");
-					alarmLastStatus[45] = rsObj.getInt("Alarm_46");
-					alarmLastStatus[46] = rsObj.getInt("Alarm_47");
-					alarmLastStatus[47] = rsObj.getInt("Alarm_48");
-					alarmLastStatus[48] = rsObj.getInt("Alarm_49");
-					alarmLastStatus[49] = rsObj.getInt("Alarm_50");
-					alarmLastStatus[50] = rsObj.getInt("Alarm_51");
-					alarmLastStatus[51] = rsObj.getInt("Alarm_52");
-					alarmLastStatus[52] = rsObj.getInt("Alarm_53");
-					alarmLastStatus[53] = rsObj.getInt("Alarm_54");
-					alarmLastStatus[54] = rsObj.getInt("Alarm_55");
-					alarmLastStatus[55] = rsObj.getInt("Alarm_56");
-					alarmLastStatus[56] = rsObj.getInt("Alarm_57");
-					alarmLastStatus[57] = rsObj.getInt("Alarm_58");
-					alarmLastStatus[58] = rsObj.getInt("Alarm_59");
-					alarmLastStatus[59] = rsObj.getInt("Alarm_60");
-					alarmLastStatus[60] = rsObj.getInt("Alarm_61");
-					alarmLastStatus[61] = rsObj.getInt("Alarm_62");
-					alarmLastStatus[62] = rsObj.getInt("Alarm_63");
-					alarmLastStatus[63] = rsObj.getInt("Alarm_64");
-					alarmLastStatus[64] = rsObj.getInt("Alarm_65");
-					alarmLastStatus[65] = rsObj.getInt("Alarm_66");
-					alarmLastStatus[66] = rsObj.getInt("Alarm_67"); 
-					alarmLastStatus[65] = rsObj.getInt("Alarm_66");
-					alarmLastStatus[66] = rsObj.getInt("Alarm_67");
-					alarmLastStatus[67] = rsObj.getInt("Alarm_68");
-					alarmLastStatus[68] = rsObj.getInt("Alarm_69");
-					alarmLastStatus[69] = rsObj.getInt("Alarm_70");
-					alarmLastStatus[70] = rsObj.getInt("Alarm_71");
-					alarmLastStatus[71] = rsObj.getInt("Alarm_72");
-					alarmLastStatus[72] = rsObj.getInt("Alarm_73");
-					alarmLastStatus[73] = rsObj.getInt("Alarm_74");
-					alarmLastStatus[74] = rsObj.getInt("Alarm_75");
-					alarmLastStatus[75] = rsObj.getInt("Alarm_76");
-					alarmLastStatus[76] = rsObj.getInt("Alarm_77");
-					alarmLastStatus[77] = rsObj.getInt("Alarm_78");
-					alarmLastStatus[78] = rsObj.getInt("Alarm_79");
-					alarmLastStatus[79] = rsObj.getInt("Alarm_80");
-					alarmLastStatus[80] = rsObj.getInt("Alarm_81");
-					alarmLastStatus[81] = rsObj.getInt("Alarm_82");
-					alarmLastStatus[82] = rsObj.getInt("Alarm_83");
-					alarmLastStatus[83] = rsObj.getInt("Alarm_84");
-					alarmLastStatus[84] = rsObj.getInt("Alarm_85");
-					alarmLastStatus[85] = rsObj.getInt("Alarm_86");
-					alarmLastStatus[86] = rsObj.getInt("Alarm_87");
-					alarmLastStatus[87] = rsObj.getInt("Alarm_88");
-					alarmLastStatus[88] = rsObj.getInt("Alarm_89");
-					alarmLastStatus[89] = rsObj.getInt("Alarm_90");
-					alarmLastStatus[90] = rsObj.getInt("Alarm_91");
-					alarmLastStatus[91] = rsObj.getInt("Alarm_92");
-					alarmLastStatus[92] = rsObj.getInt("Alarm_93");
-					alarmLastStatus[93] = rsObj.getInt("Alarm_94");
-					alarmLastStatus[94] = rsObj.getInt("Alarm_95");
-					alarmLastStatus[95] = rsObj.getInt("Alarm_96");
-					alarmLastStatus[96] = rsObj.getInt("Alarm_97");
-					alarmLastStatus[97] = rsObj.getInt("Alarm_98");
-					alarmLastStatus[98] = rsObj.getInt("Alarm_99");
-					alarmLastStatus[99] = rsObj.getInt("Alarm_100");
-					alarmLastStatus[100] = rsObj.getInt("Alarm_101");
-					alarmLastStatus[101] = rsObj.getInt("Alarm_102");
-					alarmLastStatus[102] = rsObj.getInt("Alarm_103");
-					alarmLastStatus[103] = rsObj.getInt("Alarm_104");
-					alarmLastStatus[104] = rsObj.getInt("Alarm_105");
-					alarmLastStatus[105] = rsObj.getInt("Alarm_106");
-					alarmLastStatus[106] = rsObj.getInt("Alarm_107");
-					alarmLastStatus[107] = rsObj.getInt("Alarm_108");
-					alarmLastStatus[108] = rsObj.getInt("Alarm_109");
-					alarmLastStatus[109] = rsObj.getInt("Alarm_110");
-					alarmLastStatus[110] = rsObj.getInt("Alarm_111");
-					alarmLastStatus[111] = rsObj.getInt("Alarm_112");
-					alarmLastStatus[112] = rsObj.getInt("Alarm_113");
-					alarmLastStatus[113] = rsObj.getInt("Alarm_114");
-					alarmLastStatus[114] = rsObj.getInt("Alarm_115");
-					alarmLastStatus[115] = rsObj.getInt("Alarm_116");
-					alarmLastStatus[116] = rsObj.getInt("Alarm_117");
-					alarmLastStatus[117] = rsObj.getInt("Alarm_118");
-					alarmLastStatus[118] = rsObj.getInt("Alarm_119");
-					alarmLastStatus[119] = rsObj.getInt("Alarm_120");
-					alarmLastStatus[120] = rsObj.getInt("Alarm_121");
-					alarmLastStatus[121] = rsObj.getInt("Alarm_122");
-					alarmLastStatus[122] = rsObj.getInt("Alarm_123");
-					alarmLastStatus[123] = rsObj.getInt("Alarm_124");
-					alarmLastStatus[124] = rsObj.getInt("Alarm_125");
-					alarmLastStatus[125] = rsObj.getInt("Alarm_126");
-					alarmLastStatus[126] = rsObj.getInt("Alarm_127");
-					alarmLastStatus[127] = rsObj.getInt("Alarm_128");
-					alarmLastStatus[128] = rsObj.getInt("Alarm_129");
-					alarmLastStatus[129] = rsObj.getInt("Alarm_130");
-					alarmLastStatus[130] = rsObj.getInt("Alarm_131");
-					alarmLastStatus[131] = rsObj.getInt("Alarm_132");
-					alarmLastStatus[132] = rsObj.getInt("Alarm_133");
-					alarmLastStatus[133] = rsObj.getInt("Alarm_134");
-					alarmLastStatus[134] = rsObj.getInt("Alarm_135");
-					alarmLastStatus[135] = rsObj.getInt("Alarm_136");
-					alarmLastStatus[136] = rsObj.getInt("Alarm_137");
-					alarmLastStatus[137] = rsObj.getInt("Alarm_138");
-					alarmLastStatus[138] = rsObj.getInt("Alarm_139");
-					alarmLastStatus[139] = rsObj.getInt("Alarm_140");
-					alarmLastStatus[140] = rsObj.getInt("Alarm_141");
-					alarmLastStatus[141] = rsObj.getInt("Alarm_142");
-					alarmLastStatus[142] = rsObj.getInt("Alarm_143");
-					alarmLastStatus[143] = rsObj.getInt("Alarm_144");
-					alarmLastStatus[144] = rsObj.getInt("Alarm_145");
-					alarmLastStatus[145] = rsObj.getInt("Alarm_146");
-					alarmLastStatus[146] = rsObj.getInt("Alarm_147");
-					alarmLastStatus[147] = rsObj.getInt("Alarm_148");
-					alarmLastStatus[148] = rsObj.getInt("Alarm_149");
-					alarmLastStatus[149] = rsObj.getInt("Alarm_150");
-					alarmLastStatus[150] = rsObj.getInt("Alarm_151");
-					alarmLastStatus[151] = rsObj.getInt("Alarm_152");
-					alarmLastStatus[152] = rsObj.getInt("Alarm_153");
-					alarmLastStatus[153] = rsObj.getInt("Alarm_154");
-					alarmLastStatus[154] = rsObj.getInt("Alarm_155");
-					alarmLastStatus[155] = rsObj.getInt("Alarm_156");
-					alarmLastStatus[156] = rsObj.getInt("Alarm_157");
-					alarmLastStatus[157] = rsObj.getInt("Alarm_158");
-					alarmLastStatus[158] = rsObj.getInt("Alarm_159");
-					alarmLastStatus[159] = rsObj.getInt("Alarm_160");
-					alarmLastStatus[160] = rsObj.getInt("Alarm_161");
-					alarmLastStatus[161] = rsObj.getInt("Alarm_162");
-					alarmLastStatus[162] = rsObj.getInt("Alarm_163");
-					alarmLastStatus[163] = rsObj.getInt("Alarm_164");
-					alarmLastStatus[164] = rsObj.getInt("Alarm_165");
-					alarmLastStatus[165] = rsObj.getInt("Alarm_166");
-					alarmLastStatus[166] = rsObj.getInt("Alarm_167");
-					alarmLastStatus[167] = rsObj.getInt("Alarm_168");
-					alarmLastStatus[168] = rsObj.getInt("Alarm_169");
-					alarmLastStatus[169] = rsObj.getInt("Alarm_170");
-					alarmLastStatus[170] = rsObj.getInt("Alarm_171");
-					alarmLastStatus[171] = rsObj.getInt("Alarm_172");
-					alarmLastStatus[172] = rsObj.getInt("Alarm_173");
-					alarmLastStatus[173] = rsObj.getInt("Alarm_174");
-					alarmLastStatus[174] = rsObj.getInt("Alarm_175");
-					alarmLastStatus[175] = rsObj.getInt("Alarm_176");
-					alarmLastStatus[176] = rsObj.getInt("Alarm_177");
-					alarmLastStatus[177] = rsObj.getInt("Alarm_178");
-					alarmLastStatus[178] = rsObj.getInt("Alarm_179");
-					alarmLastStatus[179] = rsObj.getInt("Alarm_180");
-					alarmLastStatus[180] = rsObj.getInt("Alarm_181");
-					alarmLastStatus[181] = rsObj.getInt("Alarm_182");
-					alarmLastStatus[182] = rsObj.getInt("Alarm_183");
-					alarmLastStatus[183] = rsObj.getInt("Alarm_184");
-					alarmLastStatus[184] = rsObj.getInt("Alarm_185");
-					alarmLastStatus[185] = rsObj.getInt("Alarm_186");
-					alarmLastStatus[186] = rsObj.getInt("Alarm_187");
-					alarmLastStatus[187] = rsObj.getInt("Alarm_188");
-					alarmLastStatus[188] = rsObj.getInt("Alarm_189");
-					alarmLastStatus[189] = rsObj.getInt("Alarm_190");
-					alarmLastStatus[190] = rsObj.getInt("Alarm_191");
-					alarmLastStatus[191] = rsObj.getInt("Alarm_192");
-					alarmLastStatus[192] = rsObj.getInt("Alarm_193");
-					alarmLastStatus[193] = rsObj.getInt("Alarm_194");
-					alarmLastStatus[194] = rsObj.getInt("Alarm_195");
-					alarmLastStatus[195] = rsObj.getInt("Alarm_196");
-					alarmLastStatus[196] = rsObj.getInt("Alarm_197");
-					alarmLastStatus[197] = rsObj.getInt("Alarm_198");
-					alarmLastStatus[198] = rsObj.getInt("Alarm_199");
-					alarmLastStatus[199] = rsObj.getInt("Alarm_200");
-					alarmLastStatus[200] = rsObj.getInt("Alarm_201");
-					alarmLastStatus[201] = rsObj.getInt("Alarm_202");
-					alarmLastStatus[202] = rsObj.getInt("Alarm_203");
-					alarmLastStatus[203] = rsObj.getInt("Alarm_204");
-					alarmLastStatus[204] = rsObj.getInt("Alarm_205");
-					alarmLastStatus[205] = rsObj.getInt("Alarm_206");
-					alarmLastStatus[206] = rsObj.getInt("Alarm_207");
-					alarmLastStatus[207] = rsObj.getInt("Alarm_208");
-					alarmLastStatus[208] = rsObj.getInt("Alarm_209");
-					alarmLastStatus[209] = rsObj.getInt("Alarm_210");
-					alarmLastStatus[210] = rsObj.getInt("Alarm_211");
-					alarmLastStatus[211] = rsObj.getInt("Alarm_212");
-					alarmLastStatus[212] = rsObj.getInt("Alarm_213");
-					alarmLastStatus[213] = rsObj.getInt("Alarm_214");
-					alarmLastStatus[214] = rsObj.getInt("Alarm_215");
-					alarmLastStatus[215] = rsObj.getInt("Alarm_216");
-					alarmLastStatus[216] = rsObj.getInt("Alarm_217");
-					alarmLastStatus[217] = rsObj.getInt("Alarm_218");
-					alarmLastStatus[218] = rsObj.getInt("Alarm_219");
-					alarmLastStatus[219] = rsObj.getInt("Alarm_220");
-					alarmLastStatus[220] = rsObj.getInt("Alarm_221");
-					alarmLastStatus[221] = rsObj.getInt("Alarm_222");
-					alarmLastStatus[222] = rsObj.getInt("Alarm_223");
-					alarmLastStatus[223] = rsObj.getInt("Alarm_224");
-					alarmLastStatus[224] = rsObj.getInt("Alarm_225");
-					alarmLastStatus[225] = rsObj.getInt("Alarm_226");
-					alarmLastStatus[226] = rsObj.getInt("Alarm_227");
-					alarmLastStatus[227] = rsObj.getInt("Alarm_228");
-					alarmLastStatus[228] = rsObj.getInt("Alarm_229");
-					alarmLastStatus[229] = rsObj.getInt("Alarm_230");
-					alarmLastStatus[230] = rsObj.getInt("Alarm_231");
-					alarmLastStatus[231] = rsObj.getInt("Alarm_232");
-					alarmLastStatus[232] = rsObj.getInt("Alarm_233");
-					alarmLastStatus[233] = rsObj.getInt("Alarm_234");
-					alarmLastStatus[234] = rsObj.getInt("Alarm_235");
-					alarmLastStatus[235] = rsObj.getInt("Alarm_236");
-					alarmLastStatus[236] = rsObj.getInt("Alarm_237");
-					alarmLastStatus[237] = rsObj.getInt("Alarm_238");
-					alarmLastStatus[238] = rsObj.getInt("Alarm_239");
-					alarmLastStatus[239] = rsObj.getInt("Alarm_240");
-					alarmLastStatus[240] = rsObj.getInt("Alarm_241");
-					alarmLastStatus[241] = rsObj.getInt("Alarm_242");
-					alarmLastStatus[242] = rsObj.getInt("Alarm_243");
-					alarmLastStatus[243] = rsObj.getInt("Alarm_244");
-					alarmLastStatus[244] = rsObj.getInt("Alarm_245");
-					alarmLastStatus[245] = rsObj.getInt("Alarm_246");
-					alarmLastStatus[246] = rsObj.getInt("Alarm_247");
-					alarmLastStatus[247] = rsObj.getInt("Alarm_248");
-					alarmLastStatus[248] = rsObj.getInt("Alarm_249");
-					alarmLastStatus[249] = rsObj.getInt("Alarm_250");
-					alarmLastStatus[250] = rsObj.getInt("Alarm_251");
-					alarmLastStatus[251] = rsObj.getInt("Alarm_252");
-					alarmLastStatus[252] = rsObj.getInt("Alarm_253");
-					alarmLastStatus[253] = rsObj.getInt("Alarm_254");
-					alarmLastStatus[254] = rsObj.getInt("Alarm_255");
-					alarmLastStatus[255] = rsObj.getInt("Alarm_256");
-					alarmLastStatus[256] = rsObj.getInt("Alarm_257");
-					alarmLastStatus[257] = rsObj.getInt("Alarm_258");
-					alarmLastStatus[258] = rsObj.getInt("Alarm_259");
-					alarmLastStatus[259] = rsObj.getInt("Alarm_260");
-					alarmLastStatus[260] = rsObj.getInt("Alarm_261");
-					alarmLastStatus[261] = rsObj.getInt("Alarm_262");
-					alarmLastStatus[262] = rsObj.getInt("Alarm_263");
-					alarmLastStatus[263] = rsObj.getInt("Alarm_264");
-					alarmLastStatus[264] = rsObj.getInt("Alarm_265");
-					alarmLastStatus[265] = rsObj.getInt("Alarm_266");
-					alarmLastStatus[266] = rsObj.getInt("Alarm_267");
-					alarmLastStatus[267] = rsObj.getInt("Alarm_268");
-					alarmLastStatus[268] = rsObj.getInt("Alarm_269");
-					alarmLastStatus[269] = rsObj.getInt("Alarm_270");
-					alarmLastStatus[270] = rsObj.getInt("Alarm_271");
-					alarmLastStatus[271] = rsObj.getInt("Alarm_272");
-					alarmLastStatus[272] = rsObj.getInt("Alarm_273");
-					alarmLastStatus[273] = rsObj.getInt("Alarm_274");
-					alarmLastStatus[274] = rsObj.getInt("Alarm_275");
-					alarmLastStatus[275] = rsObj.getInt("Alarm_276");
-					alarmLastStatus[276] = rsObj.getInt("Alarm_277");
-					alarmLastStatus[277] = rsObj.getInt("Alarm_278");
-					alarmLastStatus[278] = rsObj.getInt("Alarm_279");
-					alarmLastStatus[279] = rsObj.getInt("Alarm_280");
-					alarmLastStatus[280] = rsObj.getInt("Alarm_281");
-					alarmLastStatus[281] = rsObj.getInt("Alarm_282");
-					alarmLastStatus[282] = rsObj.getInt("Alarm_283");
-					alarmLastStatus[283] = rsObj.getInt("Alarm_284");
-					alarmLastStatus[284] = rsObj.getInt("Alarm_285");
-					alarmLastStatus[285] = rsObj.getInt("Alarm_286");
-					alarmLastStatus[286] = rsObj.getInt("Alarm_287");
-					alarmLastStatus[287] = rsObj.getInt("Alarm_288");
-					alarmLastStatus[288] = rsObj.getInt("Alarm_289");
-					alarmLastStatus[289] = rsObj.getInt("Alarm_290");
-					alarmLastStatus[290] = rsObj.getInt("Alarm_291");
-					alarmLastStatus[291] = rsObj.getInt("Alarm_292");
-					alarmLastStatus[292] = rsObj.getInt("Alarm_293");
-					alarmLastStatus[293] = rsObj.getInt("Alarm_294");
-					alarmLastStatus[294] = rsObj.getInt("Alarm_295");
-					alarmLastStatus[295] = rsObj.getInt("Alarm_296");
-					alarmLastStatus[296] = rsObj.getInt("Alarm_297");
-					alarmLastStatus[297] = rsObj.getInt("Alarm_298");
-					alarmLastStatus[298] = rsObj.getInt("Alarm_299");
-					alarmLastStatus[299] = rsObj.getInt("Alarm_300");
-					alarmLastStatus[300] = rsObj.getInt("Alarm_301");
-					alarmLastStatus[301] = rsObj.getInt("Alarm_302");
-					alarmLastStatus[302] = rsObj.getInt("Alarm_303");
-					alarmLastStatus[303] = rsObj.getInt("Alarm_304");
-					alarmLastStatus[304] = rsObj.getInt("Alarm_305");
-					alarmLastStatus[305] = rsObj.getInt("Alarm_306");
-					alarmLastStatus[306] = rsObj.getInt("Alarm_307");
-					alarmLastStatus[307] = rsObj.getInt("Alarm_308");
-					alarmLastStatus[308] = rsObj.getInt("Alarm_309");
-					alarmLastStatus[309] = rsObj.getInt("Alarm_310");
-					alarmLastStatus[310] = rsObj.getInt("Alarm_311");
-					alarmLastStatus[311] = rsObj.getInt("Alarm_312");
-					alarmLastStatus[312] = rsObj.getInt("Alarm_313");
-					alarmLastStatus[313] = rsObj.getInt("Alarm_314");
-					alarmLastStatus[314] = rsObj.getInt("Alarm_315");
-					alarmLastStatus[315] = rsObj.getInt("Alarm_316");
-					alarmLastStatus[316] = rsObj.getInt("Alarm_317");
-					alarmLastStatus[317] = rsObj.getInt("Alarm_318");
-					alarmLastStatus[318] = rsObj.getInt("Alarm_319");
-					alarmLastStatus[319] = rsObj.getInt("Alarm_320");
-					alarmLastStatus[320] = rsObj.getInt("Alarm_321");
-					alarmLastStatus[321] = rsObj.getInt("Alarm_322");
-					alarmLastStatus[322] = rsObj.getInt("Alarm_323");
-					alarmLastStatus[323] = rsObj.getInt("Alarm_324");
-					alarmLastStatus[324] = rsObj.getInt("Alarm_325");
-					alarmLastStatus[325] = rsObj.getInt("Alarm_326");
-					alarmLastStatus[326] = rsObj.getInt("Alarm_327");
-					alarmLastStatus[327] = rsObj.getInt("Alarm_328");
-					alarmLastStatus[328] = rsObj.getInt("Alarm_329");
-					alarmLastStatus[329] = rsObj.getInt("Alarm_330");
-					alarmLastStatus[330] = rsObj.getInt("Alarm_331");
-					alarmLastStatus[331] = rsObj.getInt("Alarm_332");
-					alarmLastStatus[332] = rsObj.getInt("Alarm_333");
-					alarmLastStatus[333] = rsObj.getInt("Alarm_334");
-					alarmLastStatus[334] = rsObj.getInt("Alarm_335");
-					alarmLastStatus[335] = rsObj.getInt("Alarm_336");
-					alarmLastStatus[336] = rsObj.getInt("Alarm_337");
-					alarmLastStatus[337] = rsObj.getInt("Alarm_338");
-					alarmLastStatus[338] = rsObj.getInt("Alarm_339");
-					alarmLastStatus[339] = rsObj.getInt("Alarm_340");
-					alarmLastStatus[340] = rsObj.getInt("Alarm_341");
-					alarmLastStatus[341] = rsObj.getInt("Alarm_342");
-					alarmLastStatus[342] = rsObj.getInt("Alarm_343");
-					alarmLastStatus[343] = rsObj.getInt("Alarm_344");
-					alarmLastStatus[344] = rsObj.getInt("Alarm_345");
-					alarmLastStatus[345] = rsObj.getInt("Alarm_346");
-					alarmLastStatus[346] = rsObj.getInt("Alarm_347");
-					alarmLastStatus[347] = rsObj.getInt("Alarm_348");
-					alarmLastStatus[348] = rsObj.getInt("Alarm_349");
-					alarmLastStatus[349] = rsObj.getInt("Alarm_350");
-					alarmLastStatus[350] = rsObj.getInt("Alarm_351");
-					alarmLastStatus[351] = rsObj.getInt("Alarm_352");
-					alarmLastStatus[352] = rsObj.getInt("Alarm_353");
-					alarmLastStatus[353] = rsObj.getInt("Alarm_354");
-					alarmLastStatus[354] = rsObj.getInt("Alarm_355");
-					alarmLastStatus[355] = rsObj.getInt("Alarm_356");
-					alarmLastStatus[356] = rsObj.getInt("Alarm_357");
-					alarmLastStatus[357] = rsObj.getInt("Alarm_358");
-					alarmLastStatus[358] = rsObj.getInt("Alarm_359");
-					alarmLastStatus[359] = rsObj.getInt("Alarm_360");
-					alarmLastStatus[360] = rsObj.getInt("Alarm_361");
-					alarmLastStatus[361] = rsObj.getInt("Alarm_362");
-					alarmLastStatus[362] = rsObj.getInt("Alarm_363");
-					alarmLastStatus[363] = rsObj.getInt("Alarm_364");
-					alarmLastStatus[364] = rsObj.getInt("Alarm_365");
-					alarmLastStatus[365] = rsObj.getInt("Alarm_366");
-					alarmLastStatus[366] = rsObj.getInt("Alarm_367");
-					alarmLastStatus[367] = rsObj.getInt("Alarm_368");
-					alarmLastStatus[368] = rsObj.getInt("Alarm_369");
-					alarmLastStatus[369] = rsObj.getInt("Alarm_370");
-					alarmLastStatus[370] = rsObj.getInt("Alarm_371");
-					alarmLastStatus[371] = rsObj.getInt("Alarm_372");
-					alarmLastStatus[372] = rsObj.getInt("Alarm_373");
-					alarmLastStatus[373] = rsObj.getInt("Alarm_374");
-					alarmLastStatus[374] = rsObj.getInt("Alarm_375");
-					alarmLastStatus[375] = rsObj.getInt("Alarm_376");
-					alarmLastStatus[376] = rsObj.getInt("Alarm_377");
-					alarmLastStatus[377] = rsObj.getInt("Alarm_378");
-					alarmLastStatus[378] = rsObj.getInt("Alarm_379");
-					alarmLastStatus[379] = rsObj.getInt("Alarm_380");
-					alarmLastStatus[380] = rsObj.getInt("Alarm_381");
-					alarmLastStatus[381] = rsObj.getInt("Alarm_382");
-					alarmLastStatus[382] = rsObj.getInt("Alarm_383");
-					alarmLastStatus[383] = rsObj.getInt("Alarm_384");
-					alarmLastStatus[384] = rsObj.getInt("Alarm_385");
-					alarmLastStatus[385] = rsObj.getInt("Alarm_386");
-					alarmLastStatus[386] = rsObj.getInt("Alarm_387");
-					alarmLastStatus[387] = rsObj.getInt("Alarm_388");
-					alarmLastStatus[388] = rsObj.getInt("Alarm_389");
-					alarmLastStatus[389] = rsObj.getInt("Alarm_390");
-					alarmLastStatus[390] = rsObj.getInt("Alarm_391");
-					alarmLastStatus[391] = rsObj.getInt("Alarm_392");
-					alarmLastStatus[392] = rsObj.getInt("Alarm_393");
-					alarmLastStatus[393] = rsObj.getInt("Alarm_394");
-					alarmLastStatus[394] = rsObj.getInt("Alarm_395");
-					alarmLastStatus[395] = rsObj.getInt("Alarm_396");
-					alarmLastStatus[396] = rsObj.getInt("Alarm_397");
-					alarmLastStatus[397] = rsObj.getInt("Alarm_398");
-					alarmLastStatus[398] = rsObj.getInt("Alarm_399");
-					alarmLastStatus[399] = rsObj.getInt("Alarm_400");
-					alarmLastStatus[400] = rsObj.getInt("Alarm_401");
-					alarmLastStatus[401] = rsObj.getInt("Alarm_402");
-					alarmLastStatus[402] = rsObj.getInt("Alarm_403");
-					alarmLastStatus[403] = rsObj.getInt("Alarm_404");
-					alarmLastStatus[404] = rsObj.getInt("Alarm_405");
-					alarmLastStatus[405] = rsObj.getInt("Alarm_406");
-					alarmLastStatus[406] = rsObj.getInt("Alarm_407");
-					alarmLastStatus[407] = rsObj.getInt("Alarm_408");
+					alarmLastStatus[0] = rsAlarmLastStatus.getInt("Alarm_1");
+					alarmLastStatus[1] = rsAlarmLastStatus.getInt("Alarm_2");
+					alarmLastStatus[2] = rsAlarmLastStatus.getInt("Alarm_3");
+					alarmLastStatus[3] = rsAlarmLastStatus.getInt("Alarm_4");
+					alarmLastStatus[4] = rsAlarmLastStatus.getInt("Alarm_5");
+					alarmLastStatus[5] = rsAlarmLastStatus.getInt("Alarm_6");
+					alarmLastStatus[6] = rsAlarmLastStatus.getInt("Alarm_7");
+					alarmLastStatus[7] = rsAlarmLastStatus.getInt("Alarm_8");
+					alarmLastStatus[8] = rsAlarmLastStatus.getInt("Alarm_9");
+					alarmLastStatus[9] = rsAlarmLastStatus.getInt("Alarm_10");
+					alarmLastStatus[10] = rsAlarmLastStatus.getInt("Alarm_11");
+					alarmLastStatus[11] = rsAlarmLastStatus.getInt("Alarm_12");
+					alarmLastStatus[12] = rsAlarmLastStatus.getInt("Alarm_13");
+					alarmLastStatus[13] = rsAlarmLastStatus.getInt("Alarm_14");
+					alarmLastStatus[14] = rsAlarmLastStatus.getInt("Alarm_15");
+					alarmLastStatus[15] = rsAlarmLastStatus.getInt("Alarm_16");
+					alarmLastStatus[16] = rsAlarmLastStatus.getInt("Alarm_17");
+					alarmLastStatus[17] = rsAlarmLastStatus.getInt("Alarm_18");
+					alarmLastStatus[18] = rsAlarmLastStatus.getInt("Alarm_19");
+					alarmLastStatus[19] = rsAlarmLastStatus.getInt("Alarm_20");
+					alarmLastStatus[20] = rsAlarmLastStatus.getInt("Alarm_21");
+					alarmLastStatus[21] = rsAlarmLastStatus.getInt("Alarm_22");
+					alarmLastStatus[22] = rsAlarmLastStatus.getInt("Alarm_23");
+					alarmLastStatus[23] = rsAlarmLastStatus.getInt("Alarm_24");
+					alarmLastStatus[24] = rsAlarmLastStatus.getInt("Alarm_25");
+					alarmLastStatus[25] = rsAlarmLastStatus.getInt("Alarm_26");
+					alarmLastStatus[26] = rsAlarmLastStatus.getInt("Alarm_27");
+					alarmLastStatus[27] = rsAlarmLastStatus.getInt("Alarm_28");
+					alarmLastStatus[28] = rsAlarmLastStatus.getInt("Alarm_29");
+					alarmLastStatus[29] = rsAlarmLastStatus.getInt("Alarm_30");
+					alarmLastStatus[30] = rsAlarmLastStatus.getInt("Alarm_31");
+					alarmLastStatus[31] = rsAlarmLastStatus.getInt("Alarm_32");
+					alarmLastStatus[32] = rsAlarmLastStatus.getInt("Alarm_33");
+					alarmLastStatus[33] = rsAlarmLastStatus.getInt("Alarm_34");
+					alarmLastStatus[34] = rsAlarmLastStatus.getInt("Alarm_35");
+					alarmLastStatus[35] = rsAlarmLastStatus.getInt("Alarm_36");
+					alarmLastStatus[36] = rsAlarmLastStatus.getInt("Alarm_37");
+					alarmLastStatus[37] = rsAlarmLastStatus.getInt("Alarm_38");
+					alarmLastStatus[38] = rsAlarmLastStatus.getInt("Alarm_39");
+					alarmLastStatus[39] = rsAlarmLastStatus.getInt("Alarm_40");
+					alarmLastStatus[40] = rsAlarmLastStatus.getInt("Alarm_41");
+					alarmLastStatus[41] = rsAlarmLastStatus.getInt("Alarm_42");
+					alarmLastStatus[42] = rsAlarmLastStatus.getInt("Alarm_43");
+					alarmLastStatus[43] = rsAlarmLastStatus.getInt("Alarm_44");
+					alarmLastStatus[44] = rsAlarmLastStatus.getInt("Alarm_45");
+					alarmLastStatus[45] = rsAlarmLastStatus.getInt("Alarm_46");
+					alarmLastStatus[46] = rsAlarmLastStatus.getInt("Alarm_47");
+					alarmLastStatus[47] = rsAlarmLastStatus.getInt("Alarm_48");
+					alarmLastStatus[48] = rsAlarmLastStatus.getInt("Alarm_49");
+					alarmLastStatus[49] = rsAlarmLastStatus.getInt("Alarm_50");
+					alarmLastStatus[50] = rsAlarmLastStatus.getInt("Alarm_51");
+					alarmLastStatus[51] = rsAlarmLastStatus.getInt("Alarm_52");
+					alarmLastStatus[52] = rsAlarmLastStatus.getInt("Alarm_53");
+					alarmLastStatus[53] = rsAlarmLastStatus.getInt("Alarm_54");
+					alarmLastStatus[54] = rsAlarmLastStatus.getInt("Alarm_55");
+					alarmLastStatus[55] = rsAlarmLastStatus.getInt("Alarm_56");
+					alarmLastStatus[56] = rsAlarmLastStatus.getInt("Alarm_57");
+					alarmLastStatus[57] = rsAlarmLastStatus.getInt("Alarm_58");
+					alarmLastStatus[58] = rsAlarmLastStatus.getInt("Alarm_59");
+					alarmLastStatus[59] = rsAlarmLastStatus.getInt("Alarm_60");
+					alarmLastStatus[60] = rsAlarmLastStatus.getInt("Alarm_61");
+					alarmLastStatus[61] = rsAlarmLastStatus.getInt("Alarm_62");
+					alarmLastStatus[62] = rsAlarmLastStatus.getInt("Alarm_63");
+					alarmLastStatus[63] = rsAlarmLastStatus.getInt("Alarm_64");
+					alarmLastStatus[64] = rsAlarmLastStatus.getInt("Alarm_65");
+					alarmLastStatus[65] = rsAlarmLastStatus.getInt("Alarm_66");
+					alarmLastStatus[66] = rsAlarmLastStatus.getInt("Alarm_67"); 
+					alarmLastStatus[65] = rsAlarmLastStatus.getInt("Alarm_66");
+					alarmLastStatus[66] = rsAlarmLastStatus.getInt("Alarm_67");
+					alarmLastStatus[67] = rsAlarmLastStatus.getInt("Alarm_68");
+					alarmLastStatus[68] = rsAlarmLastStatus.getInt("Alarm_69");
+					alarmLastStatus[69] = rsAlarmLastStatus.getInt("Alarm_70");
+					alarmLastStatus[70] = rsAlarmLastStatus.getInt("Alarm_71");
+					alarmLastStatus[71] = rsAlarmLastStatus.getInt("Alarm_72");
+					alarmLastStatus[72] = rsAlarmLastStatus.getInt("Alarm_73");
+					alarmLastStatus[73] = rsAlarmLastStatus.getInt("Alarm_74");
+					alarmLastStatus[74] = rsAlarmLastStatus.getInt("Alarm_75");
+					alarmLastStatus[75] = rsAlarmLastStatus.getInt("Alarm_76");
+					alarmLastStatus[76] = rsAlarmLastStatus.getInt("Alarm_77");
+					alarmLastStatus[77] = rsAlarmLastStatus.getInt("Alarm_78");
+					alarmLastStatus[78] = rsAlarmLastStatus.getInt("Alarm_79");
+					alarmLastStatus[79] = rsAlarmLastStatus.getInt("Alarm_80");
+					alarmLastStatus[80] = rsAlarmLastStatus.getInt("Alarm_81");
+					alarmLastStatus[81] = rsAlarmLastStatus.getInt("Alarm_82");
+					alarmLastStatus[82] = rsAlarmLastStatus.getInt("Alarm_83");
+					alarmLastStatus[83] = rsAlarmLastStatus.getInt("Alarm_84");
+					alarmLastStatus[84] = rsAlarmLastStatus.getInt("Alarm_85");
+					alarmLastStatus[85] = rsAlarmLastStatus.getInt("Alarm_86");
+					alarmLastStatus[86] = rsAlarmLastStatus.getInt("Alarm_87");
+					alarmLastStatus[87] = rsAlarmLastStatus.getInt("Alarm_88");
+					alarmLastStatus[88] = rsAlarmLastStatus.getInt("Alarm_89");
+					alarmLastStatus[89] = rsAlarmLastStatus.getInt("Alarm_90");
+					alarmLastStatus[90] = rsAlarmLastStatus.getInt("Alarm_91");
+					alarmLastStatus[91] = rsAlarmLastStatus.getInt("Alarm_92");
+					alarmLastStatus[92] = rsAlarmLastStatus.getInt("Alarm_93");
+					alarmLastStatus[93] = rsAlarmLastStatus.getInt("Alarm_94");
+					alarmLastStatus[94] = rsAlarmLastStatus.getInt("Alarm_95");
+					alarmLastStatus[95] = rsAlarmLastStatus.getInt("Alarm_96");
+					alarmLastStatus[96] = rsAlarmLastStatus.getInt("Alarm_97");
+					alarmLastStatus[97] = rsAlarmLastStatus.getInt("Alarm_98");
+					alarmLastStatus[98] = rsAlarmLastStatus.getInt("Alarm_99");
+					alarmLastStatus[99] = rsAlarmLastStatus.getInt("Alarm_100");
+					alarmLastStatus[100] = rsAlarmLastStatus.getInt("Alarm_101");
+					alarmLastStatus[101] = rsAlarmLastStatus.getInt("Alarm_102");
+					alarmLastStatus[102] = rsAlarmLastStatus.getInt("Alarm_103");
+					alarmLastStatus[103] = rsAlarmLastStatus.getInt("Alarm_104");
+					alarmLastStatus[104] = rsAlarmLastStatus.getInt("Alarm_105");
+					alarmLastStatus[105] = rsAlarmLastStatus.getInt("Alarm_106");
+					alarmLastStatus[106] = rsAlarmLastStatus.getInt("Alarm_107");
+					alarmLastStatus[107] = rsAlarmLastStatus.getInt("Alarm_108");
+					alarmLastStatus[108] = rsAlarmLastStatus.getInt("Alarm_109");
+					alarmLastStatus[109] = rsAlarmLastStatus.getInt("Alarm_110");
+					alarmLastStatus[110] = rsAlarmLastStatus.getInt("Alarm_111");
+					alarmLastStatus[111] = rsAlarmLastStatus.getInt("Alarm_112");
+					alarmLastStatus[112] = rsAlarmLastStatus.getInt("Alarm_113");
+					alarmLastStatus[113] = rsAlarmLastStatus.getInt("Alarm_114");
+					alarmLastStatus[114] = rsAlarmLastStatus.getInt("Alarm_115");
+					alarmLastStatus[115] = rsAlarmLastStatus.getInt("Alarm_116");
+					alarmLastStatus[116] = rsAlarmLastStatus.getInt("Alarm_117");
+					alarmLastStatus[117] = rsAlarmLastStatus.getInt("Alarm_118");
+					alarmLastStatus[118] = rsAlarmLastStatus.getInt("Alarm_119");
+					alarmLastStatus[119] = rsAlarmLastStatus.getInt("Alarm_120");
+					alarmLastStatus[120] = rsAlarmLastStatus.getInt("Alarm_121");
+					alarmLastStatus[121] = rsAlarmLastStatus.getInt("Alarm_122");
+					alarmLastStatus[122] = rsAlarmLastStatus.getInt("Alarm_123");
+					alarmLastStatus[123] = rsAlarmLastStatus.getInt("Alarm_124");
+					alarmLastStatus[124] = rsAlarmLastStatus.getInt("Alarm_125");
+					alarmLastStatus[125] = rsAlarmLastStatus.getInt("Alarm_126");
+					alarmLastStatus[126] = rsAlarmLastStatus.getInt("Alarm_127");
+					alarmLastStatus[127] = rsAlarmLastStatus.getInt("Alarm_128");
+					alarmLastStatus[128] = rsAlarmLastStatus.getInt("Alarm_129");
+					alarmLastStatus[129] = rsAlarmLastStatus.getInt("Alarm_130");
+					alarmLastStatus[130] = rsAlarmLastStatus.getInt("Alarm_131");
+					alarmLastStatus[131] = rsAlarmLastStatus.getInt("Alarm_132");
+					alarmLastStatus[132] = rsAlarmLastStatus.getInt("Alarm_133");
+					alarmLastStatus[133] = rsAlarmLastStatus.getInt("Alarm_134");
+					alarmLastStatus[134] = rsAlarmLastStatus.getInt("Alarm_135");
+					alarmLastStatus[135] = rsAlarmLastStatus.getInt("Alarm_136");
+					alarmLastStatus[136] = rsAlarmLastStatus.getInt("Alarm_137");
+					alarmLastStatus[137] = rsAlarmLastStatus.getInt("Alarm_138");
+					alarmLastStatus[138] = rsAlarmLastStatus.getInt("Alarm_139");
+					alarmLastStatus[139] = rsAlarmLastStatus.getInt("Alarm_140");
+					alarmLastStatus[140] = rsAlarmLastStatus.getInt("Alarm_141");
+					alarmLastStatus[141] = rsAlarmLastStatus.getInt("Alarm_142");
+					alarmLastStatus[142] = rsAlarmLastStatus.getInt("Alarm_143");
+					alarmLastStatus[143] = rsAlarmLastStatus.getInt("Alarm_144");
+					alarmLastStatus[144] = rsAlarmLastStatus.getInt("Alarm_145");
+					alarmLastStatus[145] = rsAlarmLastStatus.getInt("Alarm_146");
+					alarmLastStatus[146] = rsAlarmLastStatus.getInt("Alarm_147");
+					alarmLastStatus[147] = rsAlarmLastStatus.getInt("Alarm_148");
+					alarmLastStatus[148] = rsAlarmLastStatus.getInt("Alarm_149");
+					alarmLastStatus[149] = rsAlarmLastStatus.getInt("Alarm_150");
+					alarmLastStatus[150] = rsAlarmLastStatus.getInt("Alarm_151");
+					alarmLastStatus[151] = rsAlarmLastStatus.getInt("Alarm_152");
+					alarmLastStatus[152] = rsAlarmLastStatus.getInt("Alarm_153");
+					alarmLastStatus[153] = rsAlarmLastStatus.getInt("Alarm_154");
+					alarmLastStatus[154] = rsAlarmLastStatus.getInt("Alarm_155");
+					alarmLastStatus[155] = rsAlarmLastStatus.getInt("Alarm_156");
+					alarmLastStatus[156] = rsAlarmLastStatus.getInt("Alarm_157");
+					alarmLastStatus[157] = rsAlarmLastStatus.getInt("Alarm_158");
+					alarmLastStatus[158] = rsAlarmLastStatus.getInt("Alarm_159");
+					alarmLastStatus[159] = rsAlarmLastStatus.getInt("Alarm_160");
+					alarmLastStatus[160] = rsAlarmLastStatus.getInt("Alarm_161");
+					alarmLastStatus[161] = rsAlarmLastStatus.getInt("Alarm_162");
+					alarmLastStatus[162] = rsAlarmLastStatus.getInt("Alarm_163");
+					alarmLastStatus[163] = rsAlarmLastStatus.getInt("Alarm_164");
+					alarmLastStatus[164] = rsAlarmLastStatus.getInt("Alarm_165");
+					alarmLastStatus[165] = rsAlarmLastStatus.getInt("Alarm_166");
+					alarmLastStatus[166] = rsAlarmLastStatus.getInt("Alarm_167");
+					alarmLastStatus[167] = rsAlarmLastStatus.getInt("Alarm_168");
+					alarmLastStatus[168] = rsAlarmLastStatus.getInt("Alarm_169");
+					alarmLastStatus[169] = rsAlarmLastStatus.getInt("Alarm_170");
+					alarmLastStatus[170] = rsAlarmLastStatus.getInt("Alarm_171");
+					alarmLastStatus[171] = rsAlarmLastStatus.getInt("Alarm_172");
+					alarmLastStatus[172] = rsAlarmLastStatus.getInt("Alarm_173");
+					alarmLastStatus[173] = rsAlarmLastStatus.getInt("Alarm_174");
+					alarmLastStatus[174] = rsAlarmLastStatus.getInt("Alarm_175");
+					alarmLastStatus[175] = rsAlarmLastStatus.getInt("Alarm_176");
+					alarmLastStatus[176] = rsAlarmLastStatus.getInt("Alarm_177");
+					alarmLastStatus[177] = rsAlarmLastStatus.getInt("Alarm_178");
+					alarmLastStatus[178] = rsAlarmLastStatus.getInt("Alarm_179");
+					alarmLastStatus[179] = rsAlarmLastStatus.getInt("Alarm_180");
+					alarmLastStatus[180] = rsAlarmLastStatus.getInt("Alarm_181");
+					alarmLastStatus[181] = rsAlarmLastStatus.getInt("Alarm_182");
+					alarmLastStatus[182] = rsAlarmLastStatus.getInt("Alarm_183");
+					alarmLastStatus[183] = rsAlarmLastStatus.getInt("Alarm_184");
+					alarmLastStatus[184] = rsAlarmLastStatus.getInt("Alarm_185");
+					alarmLastStatus[185] = rsAlarmLastStatus.getInt("Alarm_186");
+					alarmLastStatus[186] = rsAlarmLastStatus.getInt("Alarm_187");
+					alarmLastStatus[187] = rsAlarmLastStatus.getInt("Alarm_188");
+					alarmLastStatus[188] = rsAlarmLastStatus.getInt("Alarm_189");
+					alarmLastStatus[189] = rsAlarmLastStatus.getInt("Alarm_190");
+					alarmLastStatus[190] = rsAlarmLastStatus.getInt("Alarm_191");
+					alarmLastStatus[191] = rsAlarmLastStatus.getInt("Alarm_192");
+					alarmLastStatus[192] = rsAlarmLastStatus.getInt("Alarm_193");
+					alarmLastStatus[193] = rsAlarmLastStatus.getInt("Alarm_194");
+					alarmLastStatus[194] = rsAlarmLastStatus.getInt("Alarm_195");
+					alarmLastStatus[195] = rsAlarmLastStatus.getInt("Alarm_196");
+					alarmLastStatus[196] = rsAlarmLastStatus.getInt("Alarm_197");
+					alarmLastStatus[197] = rsAlarmLastStatus.getInt("Alarm_198");
+					alarmLastStatus[198] = rsAlarmLastStatus.getInt("Alarm_199");
+					alarmLastStatus[199] = rsAlarmLastStatus.getInt("Alarm_200");
+					alarmLastStatus[200] = rsAlarmLastStatus.getInt("Alarm_201");
+					alarmLastStatus[201] = rsAlarmLastStatus.getInt("Alarm_202");
+					alarmLastStatus[202] = rsAlarmLastStatus.getInt("Alarm_203");
+					alarmLastStatus[203] = rsAlarmLastStatus.getInt("Alarm_204");
+					alarmLastStatus[204] = rsAlarmLastStatus.getInt("Alarm_205");
+					alarmLastStatus[205] = rsAlarmLastStatus.getInt("Alarm_206");
+					alarmLastStatus[206] = rsAlarmLastStatus.getInt("Alarm_207");
+					alarmLastStatus[207] = rsAlarmLastStatus.getInt("Alarm_208");
+					alarmLastStatus[208] = rsAlarmLastStatus.getInt("Alarm_209");
+					alarmLastStatus[209] = rsAlarmLastStatus.getInt("Alarm_210");
+					alarmLastStatus[210] = rsAlarmLastStatus.getInt("Alarm_211");
+					alarmLastStatus[211] = rsAlarmLastStatus.getInt("Alarm_212");
+					alarmLastStatus[212] = rsAlarmLastStatus.getInt("Alarm_213");
+					alarmLastStatus[213] = rsAlarmLastStatus.getInt("Alarm_214");
+					alarmLastStatus[214] = rsAlarmLastStatus.getInt("Alarm_215");
+					alarmLastStatus[215] = rsAlarmLastStatus.getInt("Alarm_216");
+					alarmLastStatus[216] = rsAlarmLastStatus.getInt("Alarm_217");
+					alarmLastStatus[217] = rsAlarmLastStatus.getInt("Alarm_218");
+					alarmLastStatus[218] = rsAlarmLastStatus.getInt("Alarm_219");
+					alarmLastStatus[219] = rsAlarmLastStatus.getInt("Alarm_220");
+					alarmLastStatus[220] = rsAlarmLastStatus.getInt("Alarm_221");
+					alarmLastStatus[221] = rsAlarmLastStatus.getInt("Alarm_222");
+					alarmLastStatus[222] = rsAlarmLastStatus.getInt("Alarm_223");
+					alarmLastStatus[223] = rsAlarmLastStatus.getInt("Alarm_224");
+					alarmLastStatus[224] = rsAlarmLastStatus.getInt("Alarm_225");
+					alarmLastStatus[225] = rsAlarmLastStatus.getInt("Alarm_226");
+					alarmLastStatus[226] = rsAlarmLastStatus.getInt("Alarm_227");
+					alarmLastStatus[227] = rsAlarmLastStatus.getInt("Alarm_228");
+					alarmLastStatus[228] = rsAlarmLastStatus.getInt("Alarm_229");
+					alarmLastStatus[229] = rsAlarmLastStatus.getInt("Alarm_230");
+					alarmLastStatus[230] = rsAlarmLastStatus.getInt("Alarm_231");
+					alarmLastStatus[231] = rsAlarmLastStatus.getInt("Alarm_232");
+					alarmLastStatus[232] = rsAlarmLastStatus.getInt("Alarm_233");
+					alarmLastStatus[233] = rsAlarmLastStatus.getInt("Alarm_234");
+					alarmLastStatus[234] = rsAlarmLastStatus.getInt("Alarm_235");
+					alarmLastStatus[235] = rsAlarmLastStatus.getInt("Alarm_236");
+					alarmLastStatus[236] = rsAlarmLastStatus.getInt("Alarm_237");
+					alarmLastStatus[237] = rsAlarmLastStatus.getInt("Alarm_238");
+					alarmLastStatus[238] = rsAlarmLastStatus.getInt("Alarm_239");
+					alarmLastStatus[239] = rsAlarmLastStatus.getInt("Alarm_240");
+					alarmLastStatus[240] = rsAlarmLastStatus.getInt("Alarm_241");
+					alarmLastStatus[241] = rsAlarmLastStatus.getInt("Alarm_242");
+					alarmLastStatus[242] = rsAlarmLastStatus.getInt("Alarm_243");
+					alarmLastStatus[243] = rsAlarmLastStatus.getInt("Alarm_244");
+					alarmLastStatus[244] = rsAlarmLastStatus.getInt("Alarm_245");
+					alarmLastStatus[245] = rsAlarmLastStatus.getInt("Alarm_246");
+					alarmLastStatus[246] = rsAlarmLastStatus.getInt("Alarm_247");
+					alarmLastStatus[247] = rsAlarmLastStatus.getInt("Alarm_248");
+					alarmLastStatus[248] = rsAlarmLastStatus.getInt("Alarm_249");
+					alarmLastStatus[249] = rsAlarmLastStatus.getInt("Alarm_250");
+					alarmLastStatus[250] = rsAlarmLastStatus.getInt("Alarm_251");
+					alarmLastStatus[251] = rsAlarmLastStatus.getInt("Alarm_252");
+					alarmLastStatus[252] = rsAlarmLastStatus.getInt("Alarm_253");
+					alarmLastStatus[253] = rsAlarmLastStatus.getInt("Alarm_254");
+					alarmLastStatus[254] = rsAlarmLastStatus.getInt("Alarm_255");
+					alarmLastStatus[255] = rsAlarmLastStatus.getInt("Alarm_256");
+					alarmLastStatus[256] = rsAlarmLastStatus.getInt("Alarm_257");
+					alarmLastStatus[257] = rsAlarmLastStatus.getInt("Alarm_258");
+					alarmLastStatus[258] = rsAlarmLastStatus.getInt("Alarm_259");
+					alarmLastStatus[259] = rsAlarmLastStatus.getInt("Alarm_260");
+					alarmLastStatus[260] = rsAlarmLastStatus.getInt("Alarm_261");
+					alarmLastStatus[261] = rsAlarmLastStatus.getInt("Alarm_262");
+					alarmLastStatus[262] = rsAlarmLastStatus.getInt("Alarm_263");
+					alarmLastStatus[263] = rsAlarmLastStatus.getInt("Alarm_264");
+					alarmLastStatus[264] = rsAlarmLastStatus.getInt("Alarm_265");
+					alarmLastStatus[265] = rsAlarmLastStatus.getInt("Alarm_266");
+					alarmLastStatus[266] = rsAlarmLastStatus.getInt("Alarm_267");
+					alarmLastStatus[267] = rsAlarmLastStatus.getInt("Alarm_268");
+					alarmLastStatus[268] = rsAlarmLastStatus.getInt("Alarm_269");
+					alarmLastStatus[269] = rsAlarmLastStatus.getInt("Alarm_270");
+					alarmLastStatus[270] = rsAlarmLastStatus.getInt("Alarm_271");
+					alarmLastStatus[271] = rsAlarmLastStatus.getInt("Alarm_272");
+					alarmLastStatus[272] = rsAlarmLastStatus.getInt("Alarm_273");
+					alarmLastStatus[273] = rsAlarmLastStatus.getInt("Alarm_274");
+					alarmLastStatus[274] = rsAlarmLastStatus.getInt("Alarm_275");
+					alarmLastStatus[275] = rsAlarmLastStatus.getInt("Alarm_276");
+					alarmLastStatus[276] = rsAlarmLastStatus.getInt("Alarm_277");
+					alarmLastStatus[277] = rsAlarmLastStatus.getInt("Alarm_278");
+					alarmLastStatus[278] = rsAlarmLastStatus.getInt("Alarm_279");
+					alarmLastStatus[279] = rsAlarmLastStatus.getInt("Alarm_280");
+					alarmLastStatus[280] = rsAlarmLastStatus.getInt("Alarm_281");
+					alarmLastStatus[281] = rsAlarmLastStatus.getInt("Alarm_282");
+					alarmLastStatus[282] = rsAlarmLastStatus.getInt("Alarm_283");
+					alarmLastStatus[283] = rsAlarmLastStatus.getInt("Alarm_284");
+					alarmLastStatus[284] = rsAlarmLastStatus.getInt("Alarm_285");
+					alarmLastStatus[285] = rsAlarmLastStatus.getInt("Alarm_286");
+					alarmLastStatus[286] = rsAlarmLastStatus.getInt("Alarm_287");
+					alarmLastStatus[287] = rsAlarmLastStatus.getInt("Alarm_288");
+					alarmLastStatus[288] = rsAlarmLastStatus.getInt("Alarm_289");
+					alarmLastStatus[289] = rsAlarmLastStatus.getInt("Alarm_290");
+					alarmLastStatus[290] = rsAlarmLastStatus.getInt("Alarm_291");
+					alarmLastStatus[291] = rsAlarmLastStatus.getInt("Alarm_292");
+					alarmLastStatus[292] = rsAlarmLastStatus.getInt("Alarm_293");
+					alarmLastStatus[293] = rsAlarmLastStatus.getInt("Alarm_294");
+					alarmLastStatus[294] = rsAlarmLastStatus.getInt("Alarm_295");
+					alarmLastStatus[295] = rsAlarmLastStatus.getInt("Alarm_296");
+					alarmLastStatus[296] = rsAlarmLastStatus.getInt("Alarm_297");
+					alarmLastStatus[297] = rsAlarmLastStatus.getInt("Alarm_298");
+					alarmLastStatus[298] = rsAlarmLastStatus.getInt("Alarm_299");
+					alarmLastStatus[299] = rsAlarmLastStatus.getInt("Alarm_300");
+					alarmLastStatus[300] = rsAlarmLastStatus.getInt("Alarm_301");
+					alarmLastStatus[301] = rsAlarmLastStatus.getInt("Alarm_302");
+					alarmLastStatus[302] = rsAlarmLastStatus.getInt("Alarm_303");
+					alarmLastStatus[303] = rsAlarmLastStatus.getInt("Alarm_304");
+					alarmLastStatus[304] = rsAlarmLastStatus.getInt("Alarm_305");
+					alarmLastStatus[305] = rsAlarmLastStatus.getInt("Alarm_306");
+					alarmLastStatus[306] = rsAlarmLastStatus.getInt("Alarm_307");
+					alarmLastStatus[307] = rsAlarmLastStatus.getInt("Alarm_308");
+					alarmLastStatus[308] = rsAlarmLastStatus.getInt("Alarm_309");
+					alarmLastStatus[309] = rsAlarmLastStatus.getInt("Alarm_310");
+					alarmLastStatus[310] = rsAlarmLastStatus.getInt("Alarm_311");
+					alarmLastStatus[311] = rsAlarmLastStatus.getInt("Alarm_312");
+					alarmLastStatus[312] = rsAlarmLastStatus.getInt("Alarm_313");
+					alarmLastStatus[313] = rsAlarmLastStatus.getInt("Alarm_314");
+					alarmLastStatus[314] = rsAlarmLastStatus.getInt("Alarm_315");
+					alarmLastStatus[315] = rsAlarmLastStatus.getInt("Alarm_316");
+					alarmLastStatus[316] = rsAlarmLastStatus.getInt("Alarm_317");
+					alarmLastStatus[317] = rsAlarmLastStatus.getInt("Alarm_318");
+					alarmLastStatus[318] = rsAlarmLastStatus.getInt("Alarm_319");
+					alarmLastStatus[319] = rsAlarmLastStatus.getInt("Alarm_320");
+					alarmLastStatus[320] = rsAlarmLastStatus.getInt("Alarm_321");
+					alarmLastStatus[321] = rsAlarmLastStatus.getInt("Alarm_322");
+					alarmLastStatus[322] = rsAlarmLastStatus.getInt("Alarm_323");
+					alarmLastStatus[323] = rsAlarmLastStatus.getInt("Alarm_324");
+					alarmLastStatus[324] = rsAlarmLastStatus.getInt("Alarm_325");
+					alarmLastStatus[325] = rsAlarmLastStatus.getInt("Alarm_326");
+					alarmLastStatus[326] = rsAlarmLastStatus.getInt("Alarm_327");
+					alarmLastStatus[327] = rsAlarmLastStatus.getInt("Alarm_328");
+					alarmLastStatus[328] = rsAlarmLastStatus.getInt("Alarm_329");
+					alarmLastStatus[329] = rsAlarmLastStatus.getInt("Alarm_330");
+					alarmLastStatus[330] = rsAlarmLastStatus.getInt("Alarm_331");
+					alarmLastStatus[331] = rsAlarmLastStatus.getInt("Alarm_332");
+					alarmLastStatus[332] = rsAlarmLastStatus.getInt("Alarm_333");
+					alarmLastStatus[333] = rsAlarmLastStatus.getInt("Alarm_334");
+					alarmLastStatus[334] = rsAlarmLastStatus.getInt("Alarm_335");
+					alarmLastStatus[335] = rsAlarmLastStatus.getInt("Alarm_336");
+					alarmLastStatus[336] = rsAlarmLastStatus.getInt("Alarm_337");
+					alarmLastStatus[337] = rsAlarmLastStatus.getInt("Alarm_338");
+					alarmLastStatus[338] = rsAlarmLastStatus.getInt("Alarm_339");
+					alarmLastStatus[339] = rsAlarmLastStatus.getInt("Alarm_340");
+					alarmLastStatus[340] = rsAlarmLastStatus.getInt("Alarm_341");
+					alarmLastStatus[341] = rsAlarmLastStatus.getInt("Alarm_342");
+					alarmLastStatus[342] = rsAlarmLastStatus.getInt("Alarm_343");
+					alarmLastStatus[343] = rsAlarmLastStatus.getInt("Alarm_344");
+					alarmLastStatus[344] = rsAlarmLastStatus.getInt("Alarm_345");
+					alarmLastStatus[345] = rsAlarmLastStatus.getInt("Alarm_346");
+					alarmLastStatus[346] = rsAlarmLastStatus.getInt("Alarm_347");
+					alarmLastStatus[347] = rsAlarmLastStatus.getInt("Alarm_348");
+					alarmLastStatus[348] = rsAlarmLastStatus.getInt("Alarm_349");
+					alarmLastStatus[349] = rsAlarmLastStatus.getInt("Alarm_350");
+					alarmLastStatus[350] = rsAlarmLastStatus.getInt("Alarm_351");
+					alarmLastStatus[351] = rsAlarmLastStatus.getInt("Alarm_352");
+					alarmLastStatus[352] = rsAlarmLastStatus.getInt("Alarm_353");
+					alarmLastStatus[353] = rsAlarmLastStatus.getInt("Alarm_354");
+					alarmLastStatus[354] = rsAlarmLastStatus.getInt("Alarm_355");
+					alarmLastStatus[355] = rsAlarmLastStatus.getInt("Alarm_356");
+					alarmLastStatus[356] = rsAlarmLastStatus.getInt("Alarm_357");
+					alarmLastStatus[357] = rsAlarmLastStatus.getInt("Alarm_358");
+					alarmLastStatus[358] = rsAlarmLastStatus.getInt("Alarm_359");
+					alarmLastStatus[359] = rsAlarmLastStatus.getInt("Alarm_360");
+					alarmLastStatus[360] = rsAlarmLastStatus.getInt("Alarm_361");
+					alarmLastStatus[361] = rsAlarmLastStatus.getInt("Alarm_362");
+					alarmLastStatus[362] = rsAlarmLastStatus.getInt("Alarm_363");
+					alarmLastStatus[363] = rsAlarmLastStatus.getInt("Alarm_364");
+					alarmLastStatus[364] = rsAlarmLastStatus.getInt("Alarm_365");
+					alarmLastStatus[365] = rsAlarmLastStatus.getInt("Alarm_366");
+					alarmLastStatus[366] = rsAlarmLastStatus.getInt("Alarm_367");
+					alarmLastStatus[367] = rsAlarmLastStatus.getInt("Alarm_368");
+					alarmLastStatus[368] = rsAlarmLastStatus.getInt("Alarm_369");
+					alarmLastStatus[369] = rsAlarmLastStatus.getInt("Alarm_370");
+					alarmLastStatus[370] = rsAlarmLastStatus.getInt("Alarm_371");
+					alarmLastStatus[371] = rsAlarmLastStatus.getInt("Alarm_372");
+					alarmLastStatus[372] = rsAlarmLastStatus.getInt("Alarm_373");
+					alarmLastStatus[373] = rsAlarmLastStatus.getInt("Alarm_374");
+					alarmLastStatus[374] = rsAlarmLastStatus.getInt("Alarm_375");
+					alarmLastStatus[375] = rsAlarmLastStatus.getInt("Alarm_376");
+					alarmLastStatus[376] = rsAlarmLastStatus.getInt("Alarm_377");
+					alarmLastStatus[377] = rsAlarmLastStatus.getInt("Alarm_378");
+					alarmLastStatus[378] = rsAlarmLastStatus.getInt("Alarm_379");
+					alarmLastStatus[379] = rsAlarmLastStatus.getInt("Alarm_380");
+					alarmLastStatus[380] = rsAlarmLastStatus.getInt("Alarm_381");
+					alarmLastStatus[381] = rsAlarmLastStatus.getInt("Alarm_382");
+					alarmLastStatus[382] = rsAlarmLastStatus.getInt("Alarm_383");
+					alarmLastStatus[383] = rsAlarmLastStatus.getInt("Alarm_384");
+					alarmLastStatus[384] = rsAlarmLastStatus.getInt("Alarm_385");
+					alarmLastStatus[385] = rsAlarmLastStatus.getInt("Alarm_386");
+					alarmLastStatus[386] = rsAlarmLastStatus.getInt("Alarm_387");
+					alarmLastStatus[387] = rsAlarmLastStatus.getInt("Alarm_388");
+					alarmLastStatus[388] = rsAlarmLastStatus.getInt("Alarm_389");
+					alarmLastStatus[389] = rsAlarmLastStatus.getInt("Alarm_390");
+					alarmLastStatus[390] = rsAlarmLastStatus.getInt("Alarm_391");
+					alarmLastStatus[391] = rsAlarmLastStatus.getInt("Alarm_392");
+					alarmLastStatus[392] = rsAlarmLastStatus.getInt("Alarm_393");
+					alarmLastStatus[393] = rsAlarmLastStatus.getInt("Alarm_394");
+					alarmLastStatus[394] = rsAlarmLastStatus.getInt("Alarm_395");
+					alarmLastStatus[395] = rsAlarmLastStatus.getInt("Alarm_396");
+					alarmLastStatus[396] = rsAlarmLastStatus.getInt("Alarm_397");
+					alarmLastStatus[397] = rsAlarmLastStatus.getInt("Alarm_398");
+					alarmLastStatus[398] = rsAlarmLastStatus.getInt("Alarm_399");
+					alarmLastStatus[399] = rsAlarmLastStatus.getInt("Alarm_400");
+					alarmLastStatus[400] = rsAlarmLastStatus.getInt("Alarm_401");
+					alarmLastStatus[401] = rsAlarmLastStatus.getInt("Alarm_402");
+					alarmLastStatus[402] = rsAlarmLastStatus.getInt("Alarm_403");
+					alarmLastStatus[403] = rsAlarmLastStatus.getInt("Alarm_404");
+					alarmLastStatus[404] = rsAlarmLastStatus.getInt("Alarm_405");
+					alarmLastStatus[405] = rsAlarmLastStatus.getInt("Alarm_406");
+					alarmLastStatus[406] = rsAlarmLastStatus.getInt("Alarm_407");
+					alarmLastStatus[407] = rsAlarmLastStatus.getInt("Alarm_408");
 
 				}
 
 				transResult.close();
-				rsObj.close();
+				rsAlarmLastStatus.close();
 
 				/* Compare current and last if mismatch then update*/
-
-
 				pstmtObj.close();
 				//Query1
 				pstmtObj = connObj.prepareStatement("insert into trans_alarmdatahistory(smSiteCode,alhTimestamp,Alarm_1,Alarm_2,Alarm_3,Alarm_4,Alarm_5,Alarm_6,Alarm_7,Alarm_8,Alarm_9,Alarm_10,Alarm_11,Alarm_12,Alarm_13,Alarm_14,Alarm_15,Alarm_16,Alarm_17,Alarm_18,Alarm_19,Alarm_20,Alarm_21,Alarm_22,Alarm_23,Alarm_24,Alarm_25,Alarm_26,Alarm_27,Alarm_28,Alarm_29,Alarm_30,Alarm_31,Alarm_32,Alarm_33,Alarm_34,Alarm_35,Alarm_36,Alarm_37,Alarm_38,Alarm_39,Alarm_40,Alarm_41,Alarm_42,Alarm_43,Alarm_44,Alarm_45,Alarm_46,Alarm_47,Alarm_48,Alarm_49,Alarm_50,Alarm_51,Alarm_52,Alarm_53,Alarm_54,Alarm_55,Alarm_56,Alarm_57,Alarm_58,Alarm_59,Alarm_60,Alarm_61,Alarm_62,Alarm_63,Alarm_64,Alarm_65,Alarm_66,Alarm_67,Alarm_68,Alarm_69,Alarm_70,Alarm_71,Alarm_72,Alarm_73,Alarm_74,Alarm_75,Alarm_76,Alarm_77,Alarm_78,Alarm_79,Alarm_80,Alarm_81,Alarm_82,Alarm_83,Alarm_84,Alarm_85,Alarm_86,Alarm_87,Alarm_88,Alarm_89,Alarm_90,Alarm_91,Alarm_92,Alarm_93,Alarm_94,Alarm_95,Alarm_96,Alarm_97,Alarm_98,Alarm_99,Alarm_100,Alarm_101,Alarm_102,Alarm_103,Alarm_104,Alarm_105,Alarm_106,Alarm_107,Alarm_108,Alarm_109,Alarm_110,Alarm_111,Alarm_112,Alarm_113,Alarm_114,Alarm_115,Alarm_116,Alarm_117,Alarm_118,Alarm_119,Alarm_120,Alarm_121,Alarm_122,Alarm_123,Alarm_124,Alarm_125,Alarm_126,Alarm_127,Alarm_128,Alarm_129,Alarm_130,Alarm_131,Alarm_132,Alarm_133,Alarm_134,Alarm_135,Alarm_136,Alarm_137,Alarm_138,Alarm_139,Alarm_140,Alarm_141,Alarm_142,Alarm_143,Alarm_144,Alarm_145,Alarm_146,Alarm_147,Alarm_148,Alarm_149,Alarm_150,Alarm_151,Alarm_152,Alarm_153,Alarm_154,Alarm_155,Alarm_156,Alarm_157,Alarm_158,Alarm_159,Alarm_160,Alarm_161,Alarm_162,Alarm_163,Alarm_164,Alarm_165,Alarm_166,Alarm_167,Alarm_168,Alarm_169,Alarm_170,Alarm_171,Alarm_172,Alarm_173,Alarm_174,Alarm_175,Alarm_176,Alarm_177,Alarm_178,Alarm_179,Alarm_180,Alarm_181,Alarm_182,Alarm_183,Alarm_184,Alarm_185,Alarm_186,Alarm_187,Alarm_188,Alarm_189,Alarm_190,Alarm_191,Alarm_192,Alarm_193,Alarm_194,Alarm_195,Alarm_196,Alarm_197,Alarm_198,Alarm_199,Alarm_200,Alarm_201,Alarm_202,Alarm_203,Alarm_204,Alarm_205,Alarm_206,Alarm_207,Alarm_208,Alarm_209,Alarm_210,Alarm_211,Alarm_212,Alarm_213,Alarm_214,Alarm_215,Alarm_216,Alarm_217,Alarm_218,Alarm_219,Alarm_220,Alarm_221,Alarm_222,Alarm_223,Alarm_224,Alarm_225,Alarm_226,Alarm_227,Alarm_228,Alarm_229,Alarm_230,Alarm_231,Alarm_232,Alarm_233,Alarm_234,Alarm_235,Alarm_236,Alarm_237,Alarm_238,Alarm_239,Alarm_240,Alarm_241,Alarm_242,Alarm_243,Alarm_244,Alarm_245,Alarm_246,Alarm_247,Alarm_248,Alarm_249,Alarm_250,Alarm_251,Alarm_252,Alarm_253,Alarm_254,Alarm_255,Alarm_256,Alarm_257,Alarm_258,Alarm_259,Alarm_260,Alarm_261,Alarm_262,Alarm_263,Alarm_264,Alarm_265,Alarm_266,Alarm_267,Alarm_268,Alarm_269,Alarm_270,Alarm_271,Alarm_272,Alarm_273,Alarm_274,Alarm_275,Alarm_276,Alarm_277,Alarm_278,Alarm_279,Alarm_280,Alarm_281,Alarm_282,Alarm_283,Alarm_284,Alarm_285,Alarm_286,Alarm_287,Alarm_288,Alarm_289,Alarm_290,Alarm_291,Alarm_292,Alarm_293,Alarm_294,Alarm_295,Alarm_296,Alarm_297,Alarm_298,Alarm_299,Alarm_300,Alarm_301,Alarm_302,Alarm_303,Alarm_304,Alarm_305,Alarm_306,Alarm_307,Alarm_308,Alarm_309,Alarm_310,Alarm_311,Alarm_312,Alarm_313,Alarm_314,Alarm_315,Alarm_316,Alarm_317,Alarm_318,Alarm_319,Alarm_320,Alarm_321,Alarm_322,Alarm_323,Alarm_324,Alarm_325,Alarm_326,Alarm_327,Alarm_328,Alarm_329,Alarm_330,Alarm_331,Alarm_332,Alarm_333,Alarm_334,Alarm_335,Alarm_336,Alarm_337,Alarm_338,Alarm_339,Alarm_340,Alarm_341,Alarm_342,Alarm_343,Alarm_344,Alarm_345,Alarm_346,Alarm_347,Alarm_348,Alarm_349,Alarm_350,Alarm_351,Alarm_352,Alarm_353,Alarm_354,Alarm_355,Alarm_356,Alarm_357,Alarm_358,Alarm_359,Alarm_360,Alarm_361,Alarm_362,Alarm_363,Alarm_364,Alarm_365,Alarm_366,Alarm_367,Alarm_368,Alarm_369,Alarm_370,Alarm_371,Alarm_372,Alarm_373,Alarm_374,Alarm_375,Alarm_376,Alarm_377,Alarm_378,Alarm_379,Alarm_380,Alarm_381,Alarm_382,Alarm_383,Alarm_384,Alarm_385,Alarm_386,Alarm_387,Alarm_388,Alarm_389,Alarm_390,Alarm_391,Alarm_392,Alarm_393,Alarm_394,Alarm_395,Alarm_396,Alarm_397,Alarm_398,Alarm_399,Alarm_400,Alarm_401,Alarm_402,Alarm_403,Alarm_404,Alarm_405,Alarm_406,Alarm_407,Alarm_408,smSiteID,smSitetypeid,DBCreationtimestamp,hpDate) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
 
-				//Error No value specified for parameter 412
-
-				pstmtObj.setString(1,siteId);
+				pstmtObj.setString(1,siteCode);
 				pstmtObj.setLong(2,_recordtime);
 				pstmtObj.setInt(3 ,alarm[0]);
 				pstmtObj.setInt(4 ,alarm[1]);
@@ -3924,31 +3258,31 @@ public class AlarmProcessing {
 				pstmtObj.setInt(410, alarm[407]);
 				pstmtObj.setInt(411, smSiteId);
 				pstmtObj.setInt(412, smSitetypeid);
-				
 				pstmtObj.setLong(413,dbCreationTime);
 				pstmtObj.setDate(414, hpDate);
 
-				pstmtObj.executeUpdate();	
+				pstmtObj.executeUpdate();
+				logger.info("Inserted into trans_alarmdatahistory for site: "+siteCode);
 			}
-			
+
 			pstmtObj = connObj.prepareStatement("Select * from trans_ltmalarmlaststatus where smSiteCode "
-					+ "='"+siteId+"'");
+					+ "='"+siteCode+"'");
 
 			ResultSet lirsObj = pstmtObj.executeQuery();
 			boolean liisResult = lirsObj.next();
-			
+
 			lirsObj.close();
-			AlarmUtil alarmUtil = new AlarmUtil();
-			
+			/*Data is not there for the first time in trans_ltmalarmlaststatus*/
 			if(liisResult == false) {
 
-				alarmUtil.insertIntoLiAlarmLastStatus(alarm,smSiteId,smSitetypeid,siteId,_recordtime,dbCreationTime,hpDate,connObj);
-				alarmUtil.insertIntoLiTransAlarmHistory(alarm,smSiteId,smSitetypeid,siteId,_recordtime,dbCreationTime,hpDate,connObj);
-
+				alarmUtil.insertIntoLiAlarmLastStatus(alarm,smSiteId,smSitetypeid,siteCode,_recordtime,dbCreationTime,hpDate,connObj);
+				logger.info("Inserted into trans_ltmalarmlaststatus for first time for site: "+siteCode);
+				alarmUtil.insertIntoLiTransAlarmHistory(alarm,smSiteId,smSitetypeid,siteCode,_recordtime,dbCreationTime,hpDate,connObj);
+				logger.info("Inserted into trans_ltmalarmdatahistory for first time for site: "+siteCode);
 			}
 			else {
 
-				pstmtObj = connObj.prepareStatement("Select * from trans_ltmalarmlaststatus where smSiteCode ='"+siteId+"'");
+				pstmtObj = connObj.prepareStatement("Select * from trans_ltmalarmlaststatus where smSiteCode ='"+siteCode+"'");
 
 				ResultSet transLiResult = pstmtObj.executeQuery();
 				while(transLiResult.next()){
@@ -4597,14 +3931,12 @@ public class AlarmProcessing {
 
 				transLiResult.close();
 				lirsObj.close();
-
-				/* Compare current and last if mismatch then update*/
-
 				pstmtObj.close();
-				alarmUtil.insertIntoLiTransAlarmHistory(alarm,smSiteId,smSitetypeid,siteId,_recordtime,dbCreationTime,hpDate,connObj);
+				
+				alarmUtil.insertIntoLiTransAlarmHistory(alarm,smSiteId,smSitetypeid,siteCode,_recordtime,dbCreationTime,hpDate,connObj);
+				logger.info("Inserted into trans_ltmalarmdatahistory for site: "+siteCode);
 			}
-			
-			HashMap<String,String> alDescMap = new HashMap<String,String>();
+
 			for(int i=0; i<alarmLastStatus.length; i++) {
 
 				if(alarmLastStatus[i] != alarm[i]) {
@@ -4613,35 +3945,24 @@ public class AlarmProcessing {
 					String coulmn = "Alarm_"+pin;
 					int alarmStatus = alarm[i];
 					
+					/* Lithium Alarm Insertion*/
 					if(pin>=409) {
-						
-//						String coulmn = "Alarm_"+pin;
-//						int alarmStatus = alarm[i];
-						pstmtObj = connObj.prepareStatement("UPDATE trans_ltmalarmlaststatus SET "+coulmn+" = "+alarmStatus+"  , alsTimestamp="+_recordtime+" WHERE smSiteID='"+smSiteId+"'");
-						System.out.println("Update Query--"+pstmtObj);
+
+						pstmtObj = connObj.prepareStatement("UPDATE trans_ltmalarmlaststatus SET "+coulmn+" = "+alarmStatus+"  , ltmTimestamp="+_recordtime+" WHERE smSiteID='"+smSiteId+"'");
+						pstmtObj.executeUpdate();
+						logger.info("UPDATE trans_ltmalarmlaststatus for site: "+siteCode + " for alarm Pin: "+coulmn);
 						pstmtObj.close();
 					}
-					
+
 					else {
-					
-					
-					pstmtObj = connObj.prepareStatement("UPDATE trans_alarmlaststatus SET "+coulmn+" = "+alarmStatus+"  , alsTimestamp="+_recordtime+" WHERE smSiteID='"+smSiteId+"'");
-					System.out.println("Update Query--"+pstmtObj);
 
-					pstmtObj.executeUpdate();
-					pstmtObj.close();
-					System.out.println("Alarm Last Status Updated");
+						pstmtObj = connObj.prepareStatement("UPDATE trans_alarmlaststatus SET "+coulmn+" = "+alarmStatus+"  , alsTimestamp="+_recordtime+" WHERE smSiteID='"+smSiteId+"'");
+						logger.info("UPDATE trans_alarmlaststatus for site: "+siteCode + " for alarm Pin: "+coulmn);
+						pstmtObj.executeUpdate();
+						pstmtObj.close();
 					}
 
-					pstmtObj = connObj.prepareStatement("Select * from alarmlabel where alPinID='"+coulmn+"'");
-					ResultSet alarmLabelResult = pstmtObj.executeQuery();
-
-					while(alarmLabelResult.next()) {
-
-						alDescMap.put(coulmn, alarmLabelResult.getString("alDesc"));
-					}
-
-					/*Take care of Trans_AlarmRecords for open alarms */
+					/*Take care of Trans_AlarmRecords for open and close alarms */
 					pstmtObj = connObj.prepareStatement("INSERT INTO trans_alarmrecords(alName,alrOpenTime,alrCloseTime,smSiteCode,alrstatus,"
 							+ "smSiteID,alrPinNumber,smSiteName,crClusterID,znZoneID,znZone,emEmpID,emEmployeeID,"
 							+ "emFirstName,emContactNo,emEmail,crName,rgRegionID,rgRegion,alrTTCreationStatus,"
@@ -4649,66 +3970,73 @@ public class AlarmProcessing {
 					int ttCreationRequired=0;
 					int ttNumber=0;
 
-						/**
-						 * Check Alarm is eligible for TT creation
-						 * 
-						 */
-						
-						if(alrmList2.get("Alarm_"+String.valueOf(i+1)) ==1) {
-							ttCreationRequired=1;
-							ttNumber = getMaxTTNumber(smSiteId,"Alarm_"+String.valueOf(i+1),connObj);
-						}
-								
-						if((alrmList1.get("Alarm_"+String.valueOf(i+1))==1)) {
-					if(alarmStatus ==1){
+					/**
+					 * Check Alarm is eligible for TT creation
+					 * 
+					 */
 
-						String alarmName = alrmList3.get("Alarm_"+(i+1));
-						pstmtObj.setString(1, alarmName);
-						pstmtObj.setLong(2, _recordtime);
-						pstmtObj.setLong(3, 0);
-						pstmtObj.setString(4, siteId);
-						pstmtObj.setInt(5, 1);
-						pstmtObj.setInt(6, smSiteId);
-						pstmtObj.setString(7, "Alarm_"+String.valueOf(i+1));
-						pstmtObj.setString(8, smSiteName);
-						pstmtObj.setInt(9, crClusterID);
-						pstmtObj.setInt(10, znZoneID);
-						pstmtObj.setString(11, znZone);
-
-						pstmtObj.setInt(12, emEmpID);
-						pstmtObj.setString(13, emEmployeeID);
-						pstmtObj.setString(14, emFirstName);
-						pstmtObj.setString(15, emContactNo);
-						pstmtObj.setString(16, emEmail);
-						pstmtObj.setString(17, crName);
-						pstmtObj.setInt(18, rgRegionID);
-						pstmtObj.setString(19, rgRegion);
-						pstmtObj.setInt(20, ttCreationRequired);
-						pstmtObj.setInt(21, ttNumber);
-						pstmtObj.setInt(22, alrmList4.get("Alarm_"+String.valueOf(i+1)));
-						pstmtObj.setInt(23, smSitetypeid);
-						pstmtObj.setInt(24, 1);
-						pstmtObj.setDate(25, hpDate);
-						
-						System.out.println("Error------------------"+pstmtObj);
-						int rsObj3 = pstmtObj.executeUpdate();
-						System.out.println("Data Inserted :" +rsObj3);
-
-					} else if(alarmStatus ==0) {
-						String alrPinNumber = "Alarm_"+String.valueOf(i+1);
-						pstmtObj = connObj.prepareStatement("UPDATE trans_alarmrecords SET alrstatus = 0, "
-								+ "ttStatus=0, alrCloseTime = "+_recordtime+" WHERE smSiteID='"+smSiteId+"' and "
-										+ "alrPinnumber= '"+alrPinNumber+"'");
-						pstmtObj.executeUpdate();
+					if(ttCreationMap.get("Alarm_"+String.valueOf(i+1)) ==1) {
+						ttCreationRequired=1;
+						ttNumber = alarmUtil.getMaxTTNumber(smSiteId,"Alarm_"+String.valueOf(i+1),connObj);
 					}
-				}
+
+					int pinCriticality = pinConnectedMap.get("Alarm_"+String.valueOf(i+1));
+					String alrPinNumber = "Alarm_"+String.valueOf(i+1);
+					String alarmName = alarmNameMap.get("Alarm_"+(i+1));
+					
+					if((pinCriticality==1)) {
+						/* Open Alarm*/
+						if(alarmStatus ==1){
+							
+							pstmtObj.setString(1, alarmName);
+							pstmtObj.setLong(2, _recordtime);
+							pstmtObj.setLong(3, 0);
+							pstmtObj.setString(4, siteCode);
+							pstmtObj.setInt(5, 1);
+							pstmtObj.setInt(6, smSiteId);
+							pstmtObj.setString(7, alrPinNumber);
+							pstmtObj.setString(8, smSiteName);
+							pstmtObj.setInt(9, crClusterID);
+							pstmtObj.setInt(10, znZoneID);
+							pstmtObj.setString(11, znZone);
+							pstmtObj.setInt(12, emEmpID);
+							pstmtObj.setString(13, emEmployeeID);
+							pstmtObj.setString(14, emFirstName);
+							pstmtObj.setString(15, emContactNo);
+							pstmtObj.setString(16, emEmail);
+							pstmtObj.setString(17, crName);
+							pstmtObj.setInt(18, rgRegionID);
+							pstmtObj.setString(19, rgRegion);
+							pstmtObj.setInt(20, ttCreationRequired);
+							pstmtObj.setInt(21, ttNumber);
+							pstmtObj.setInt(22, pinCriticality);
+							pstmtObj.setInt(23, smSitetypeid);
+							pstmtObj.setInt(24, 1);
+							pstmtObj.setDate(25, hpDate);
+
+							pstmtObj.executeUpdate();
+							logger.info("Open Alarm Record Inserted into trans_alarmrecords for site: "+siteCode+" for "
+									+ "alarm: "+alrPinNumber);
+						/* Close Alarm*/
+						} else if(alarmStatus ==0) {
+							
+							pstmtObj = connObj.prepareStatement("UPDATE trans_alarmrecords SET alrstatus = 0, "
+									+ "ttStatus=0, alrCloseTime = "+_recordtime+" WHERE smSiteID='"+smSiteId+"' and "
+									+ "alrPinnumber= '"+alrPinNumber+"'");
+							pstmtObj.executeUpdate();
+							logger.info("Close Alarm Record Updated into trans_alarmrecords for site: "+siteCode+" for "
+									+ "alarm: "+alrPinNumber);
+						}
+					}
 				}
 			}
 
-			System.out.println("\n=====Releasing Connection Object To Pool=====\n");       
-
+			logger.info("\n=====Releasing Connection Object To Pool=====\n");       
 			pstmtObj.close();
+			logger.info("Alarm Processing Completed for site: "+siteCode);
 		} catch(Exception sqlException) {
+			
+			logger.error ("Failed to process alarm", sqlException+ " for site: ",siteCode);
 			sqlException.printStackTrace();
 		} finally {
 			try {
@@ -4722,105 +4050,10 @@ public class AlarmProcessing {
 					connObj=null;
 				}
 			} catch(Exception sqlException) {
+				logger.error ("Failed to process alarm", sqlException+ " for site: ",siteCode);
 				sqlException.printStackTrace();
 			}
 		}
 		jdbcObj.printDbStatus();
-	}
-
-	private char[] processThirtyTwo(String invStatus) {
-
-		String preBin = new BigInteger(invStatus, 16).toString(2);
-		Integer solarStatusMod1length = preBin.length();
-		if (solarStatusMod1length < 32) {
-			for (int i = 0; i < 32 - solarStatusMod1length; i++) {
-				preBin = "0" + preBin;
-			}
-		}
-
-		if(preBin.length()!=32) {
-
-			int need = 32-preBin.length();
-			for (int j = 1; j<=need; j++) {
-				preBin = "0" + preBin;
-			}
-		}
-		char[] alarmCharArray = new char[32];
-		if(invStatus.equalsIgnoreCase("00")) {
-
-			alarmCharArray = "00000000000000000000000000000000".toCharArray();
-		} else {
-			alarmCharArray = preBin.toCharArray();
-		}
-		return alarmCharArray;
-	}
-
-
-	private int getMaxTTNumber(int siteId,String alarmPin, Connection connObj) throws Exception {
-
-		PreparedStatement pstmtObj = null;
-		int msgId=0;
-//		int intMsgId=0;
-		try {   
-
-
-			// Performing Database Operation!
-			System.out.println("\n=====Making A New Connection Object For Db Transaction=====\n");
-			pstmtObj = connObj.prepareStatement("Select max(alrTTNumber) from trans_alarmrecords");
-
-			ResultSet rsObj = pstmtObj.executeQuery();
-
-			while(rsObj.next()){
-				msgId = rsObj.getInt(1);
-//				intMsgId = Integer.parseInt(msgId.replace("TT", ""));
-			}
-
-			rsObj.close();
-			//			connObj.close();
-			pstmtObj.close();
-
-			System.out.println("\n=====Releasing Connection Object To Pool=====\n");            
-		} catch(Exception sqlException) {
-			sqlException.printStackTrace();
-		} finally {
-			try {
-				// Closing PreparedStatement Object
-				if(pstmtObj != null) {
-					pstmtObj.close();
-					pstmtObj = null;
-				}
-			} catch(Exception sqlException) {
-				sqlException.printStackTrace();
-			}
-		}
-
-		return msgId+1;
-	}
-
-	private char[] processInverterAlarm(String invStatus) {
-
-		String preBin = new BigInteger(invStatus, 16).toString(2);
-		Integer solarStatusMod1length = preBin.length();
-		if (solarStatusMod1length < 8) {
-			for (int i = 0; i < 8 - solarStatusMod1length; i++) {
-				preBin = "0" + preBin;
-			}
-		}
-
-		if(preBin.length()!=4) {
-
-			int need = 4-preBin.length();
-			for (int j = 1; j<=need; j++) {
-				preBin = "0" + preBin;
-			}
-		}
-		char[] alarmCharArray = new char[8];
-		if(invStatus.equalsIgnoreCase("00")) {
-
-			alarmCharArray = "00000000".toCharArray();
-		} else {
-			alarmCharArray = preBin.toCharArray();
-		}
-		return alarmCharArray;
 	}
 }

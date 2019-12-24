@@ -1,31 +1,28 @@
 package com.digitrinity.parser.util;
 
+import java.math.BigInteger;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public class AlarmUtil {
+
+	private static Logger logger = LogManager.getLogger(AlarmUtil.class.getName());
 
 	public void insertIntoLiTransAlarmHistory(int[] alarm, int smSiteId, int smSitetypeid, String siteId,
 			long _recordtime, long dbCreationTime, Date hpDate,Connection connObj) throws Exception {
 
-//		Connection connObj = null;
 		PreparedStatement pstmtObj = null;
-//		ConnectionPool jdbcObj = new ConnectionPool();
-//		DataSource dataSource = jdbcObj.setUpPool();
-//		jdbcObj.printDbStatus();
-//
-//		// Performing Database Operation!
-//		System.out.println("\n=====Making A New Connection Object For Db Transaction=====\n");
-//		connObj = dataSource.getConnection();
-//		jdbcObj.printDbStatus(); 
-		
+
 		/* Insert into trans_alarmhistory */
 		//Query2
 		try {
 			pstmtObj = connObj.prepareStatement("insert into trans_ltmalarmdatahistory(Alarm_409,Alarm_410,Alarm_411,Alarm_412,Alarm_413,Alarm_414,Alarm_415,Alarm_416,Alarm_417,Alarm_418,Alarm_419,Alarm_420,Alarm_421,Alarm_422,Alarm_423,Alarm_424,Alarm_425,Alarm_426,Alarm_427,Alarm_428,Alarm_429,Alarm_430,Alarm_431,Alarm_432,Alarm_433,Alarm_434,Alarm_435,Alarm_436,Alarm_437,Alarm_438,Alarm_439,Alarm_440,Alarm_441,Alarm_442,Alarm_443,Alarm_444,Alarm_445,Alarm_446,Alarm_447,Alarm_448,Alarm_449,Alarm_450,Alarm_451,Alarm_452,Alarm_453,Alarm_454,Alarm_455,Alarm_456,Alarm_457,Alarm_458,Alarm_459,Alarm_460,Alarm_461,Alarm_462,Alarm_463,Alarm_464,Alarm_465,Alarm_466,Alarm_467,Alarm_468,Alarm_469,Alarm_470,Alarm_471,Alarm_472,Alarm_473,Alarm_474,Alarm_475,Alarm_476,Alarm_477,Alarm_478,Alarm_479,Alarm_480,Alarm_481,Alarm_482,Alarm_483,Alarm_484,Alarm_485,Alarm_486,Alarm_487,Alarm_488,Alarm_489,Alarm_490,Alarm_491,Alarm_492,Alarm_493,Alarm_494,Alarm_495,Alarm_496,Alarm_497,Alarm_498,Alarm_499,Alarm_500,Alarm_501,Alarm_502,Alarm_503,Alarm_504,Alarm_505,Alarm_506,Alarm_507,Alarm_508,Alarm_509,Alarm_510,Alarm_511,Alarm_512,Alarm_513,Alarm_514,Alarm_515,Alarm_516,Alarm_517,Alarm_518,Alarm_519,Alarm_520,Alarm_521,Alarm_522,Alarm_523,Alarm_524,Alarm_525,Alarm_526,Alarm_527,Alarm_528,Alarm_529,Alarm_530,Alarm_531,Alarm_532,Alarm_533,Alarm_534,Alarm_535,Alarm_536,Alarm_537,Alarm_538,Alarm_539,Alarm_540,Alarm_541,Alarm_542,Alarm_543,Alarm_544,Alarm_545,Alarm_546,Alarm_547,Alarm_548,Alarm_549,Alarm_550,Alarm_551,Alarm_552,Alarm_553,Alarm_554,Alarm_555,Alarm_556,Alarm_557,Alarm_558,Alarm_559,Alarm_560,Alarm_561,Alarm_562,Alarm_563,Alarm_564,Alarm_565,Alarm_566,Alarm_567,Alarm_568,Alarm_569,Alarm_570,Alarm_571,Alarm_572,Alarm_573,Alarm_574,Alarm_575,Alarm_576,Alarm_577,Alarm_578,Alarm_579,Alarm_580,Alarm_581,Alarm_582,Alarm_583,Alarm_584,Alarm_585,Alarm_586,Alarm_587,Alarm_588,Alarm_589,Alarm_590,Alarm_591,Alarm_592,Alarm_593,Alarm_594,Alarm_595,Alarm_596,Alarm_597,Alarm_598,Alarm_599,Alarm_600,Alarm_601,Alarm_602,Alarm_603,Alarm_604,Alarm_605,Alarm_606,Alarm_607,Alarm_608,Alarm_609,Alarm_610,Alarm_611,Alarm_612,Alarm_613,Alarm_614,Alarm_615,Alarm_616,Alarm_617,Alarm_618,Alarm_619,Alarm_620,Alarm_621,Alarm_622,Alarm_623,Alarm_624,Alarm_625,Alarm_626,Alarm_627,Alarm_628,Alarm_629,Alarm_630,Alarm_631,Alarm_632,Alarm_633,Alarm_634,Alarm_635,Alarm_636,Alarm_637,Alarm_638,Alarm_639,Alarm_640,Alarm_641,Alarm_642,Alarm_643,Alarm_644,Alarm_645,Alarm_646,Alarm_647,Alarm_648,Alarm_649,Alarm_650,Alarm_651,Alarm_652,Alarm_653,Alarm_654,Alarm_655,Alarm_656,Alarm_657,Alarm_658,Alarm_659,Alarm_660,Alarm_661,Alarm_662,Alarm_663,Alarm_664,Alarm_665,Alarm_666,Alarm_667,Alarm_668,Alarm_669,Alarm_670,Alarm_671,Alarm_672,Alarm_673,Alarm_674,Alarm_675,Alarm_676,Alarm_677,Alarm_678,Alarm_679,Alarm_680,Alarm_681,Alarm_682,Alarm_683,Alarm_684,Alarm_685,Alarm_686,Alarm_687,Alarm_688,Alarm_689,Alarm_690,Alarm_691,Alarm_692,Alarm_693,Alarm_694,Alarm_695,Alarm_696,Alarm_697,Alarm_698,Alarm_699,Alarm_700,Alarm_701,Alarm_702,Alarm_703,Alarm_704,Alarm_705,Alarm_706,Alarm_707,Alarm_708,Alarm_709,Alarm_710,Alarm_711,Alarm_712,Alarm_713,Alarm_714,Alarm_715,Alarm_716,Alarm_717,Alarm_718,Alarm_719,Alarm_720,Alarm_721,Alarm_722,Alarm_723,Alarm_724,Alarm_725,Alarm_726,Alarm_727,Alarm_728,Alarm_729,Alarm_730,Alarm_731,Alarm_732,Alarm_733,Alarm_734,Alarm_735,Alarm_736,Alarm_737,Alarm_738,Alarm_739,Alarm_740,Alarm_741,Alarm_742,Alarm_743,Alarm_744,Alarm_745,Alarm_746,Alarm_747,Alarm_748,Alarm_749,Alarm_750,Alarm_751,Alarm_752,Alarm_753,Alarm_754,Alarm_755,Alarm_756,Alarm_757,Alarm_758,Alarm_759,Alarm_760,Alarm_761,Alarm_762,Alarm_763,Alarm_764,Alarm_765,Alarm_766,Alarm_767,Alarm_768,Alarm_769,Alarm_770,Alarm_771,Alarm_772,Alarm_773,Alarm_774,Alarm_775,Alarm_776,Alarm_777,Alarm_778,Alarm_779,Alarm_780,Alarm_781,Alarm_782,Alarm_783,Alarm_784,Alarm_785,Alarm_786,Alarm_787,Alarm_788,Alarm_789,Alarm_790,Alarm_791,Alarm_792,Alarm_793,Alarm_794,Alarm_795,Alarm_796,Alarm_797,Alarm_798,Alarm_799,Alarm_800,Alarm_801,Alarm_802,Alarm_803,Alarm_804,Alarm_805,Alarm_806,Alarm_807,Alarm_808,Alarm_809,Alarm_810,Alarm_811,Alarm_812,Alarm_813,Alarm_814,Alarm_815,Alarm_816,Alarm_817,Alarm_818,Alarm_819,Alarm_820,Alarm_821,Alarm_822,Alarm_823,Alarm_824,Alarm_825,Alarm_826,Alarm_827,Alarm_828,Alarm_829,Alarm_830,Alarm_831,Alarm_832,Alarm_833,Alarm_834,Alarm_835,Alarm_836,Alarm_837,Alarm_838,Alarm_839,Alarm_840,Alarm_841,Alarm_842,Alarm_843,Alarm_844,Alarm_845,Alarm_846,Alarm_847,Alarm_848,Alarm_849,Alarm_850,Alarm_851,Alarm_852,Alarm_853,Alarm_854,Alarm_855,Alarm_856,Alarm_857,Alarm_858,Alarm_859,Alarm_860,Alarm_861,Alarm_862,Alarm_863,Alarm_864,Alarm_865,Alarm_866,Alarm_867,Alarm_868,Alarm_869,Alarm_870,Alarm_871,Alarm_872,Alarm_873,Alarm_874,Alarm_875,Alarm_876,Alarm_877,Alarm_878,Alarm_879,Alarm_880,Alarm_881,Alarm_882,Alarm_883,Alarm_884,Alarm_885,Alarm_886,Alarm_887,Alarm_888,Alarm_889,Alarm_890,Alarm_891,Alarm_892,Alarm_893,Alarm_894,Alarm_895,Alarm_896,Alarm_897,Alarm_898,Alarm_899,Alarm_900,Alarm_901,Alarm_902,Alarm_903,Alarm_904,Alarm_905,Alarm_906,Alarm_907,Alarm_908,Alarm_909,Alarm_910,Alarm_911,Alarm_912,Alarm_913,Alarm_914,Alarm_915,Alarm_916,Alarm_917,Alarm_918,Alarm_919,Alarm_920,Alarm_921,Alarm_922,Alarm_923,Alarm_924,Alarm_925,Alarm_926,Alarm_927,Alarm_928,Alarm_929,Alarm_930,Alarm_931,Alarm_932,Alarm_933,Alarm_934,Alarm_935,Alarm_936,Alarm_937,Alarm_938,Alarm_939,Alarm_940,Alarm_941,Alarm_942,Alarm_943,Alarm_944,Alarm_945,Alarm_946,Alarm_947,Alarm_948,Alarm_949,Alarm_950,Alarm_951,Alarm_952,Alarm_953,Alarm_954,Alarm_955,Alarm_956,Alarm_957,Alarm_958,Alarm_959,Alarm_960,Alarm_961,Alarm_962,Alarm_963,Alarm_964,Alarm_965,Alarm_966,Alarm_967,Alarm_968,Alarm_969,Alarm_970,Alarm_971,Alarm_972,Alarm_973,Alarm_974,Alarm_975,Alarm_976,Alarm_977,Alarm_978,Alarm_979,Alarm_980,Alarm_981,Alarm_982,Alarm_983,Alarm_984,Alarm_985,Alarm_986,Alarm_987,Alarm_988,Alarm_989,Alarm_990,Alarm_991,Alarm_992,Alarm_993,Alarm_994,Alarm_995,Alarm_996,Alarm_997,Alarm_998,Alarm_999,Alarm_1000,Alarm_1001,Alarm_1002,Alarm_1003,Alarm_1004,Alarm_1005,Alarm_1006,Alarm_1007,Alarm_1008,Alarm_1009,Alarm_1010,Alarm_1011,Alarm_1012,Alarm_1013,Alarm_1014,Alarm_1015,Alarm_1016,Alarm_1017,Alarm_1018,Alarm_1019,Alarm_1020,Alarm_1021,Alarm_1022,Alarm_1023,Alarm_1024,Alarm_1025,Alarm_1026,Alarm_1027,Alarm_1028,Alarm_1029,Alarm_1030,Alarm_1031,Alarm_1032,Alarm_1033,Alarm_1034,Alarm_1035,Alarm_1036,Alarm_1037,Alarm_1038,Alarm_1039,Alarm_1040,Alarm_1041,Alarm_1042,Alarm_1043,Alarm_1044,Alarm_1045,Alarm_1046,Alarm_1047,Alarm_1048,smSiteID,smSitetypeid,smSiteCode,lthTimestamp,DBCreationTimestamp,hpDate) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
-
 
 			pstmtObj.setInt(1, alarm[408]);
 			pstmtObj.setInt(2, alarm[409]);
@@ -671,14 +668,15 @@ public class AlarmUtil {
 			pstmtObj.setInt(642, smSitetypeid);
 			pstmtObj.setString(643,siteId);
 			pstmtObj.setLong(644,_recordtime);
-			
+
 			pstmtObj.setLong(645,dbCreationTime);
-			
+
 			pstmtObj.setDate(646,hpDate);
-			
+
 			pstmtObj.executeUpdate();
 
 		} catch (SQLException e) {
+			logger.error ("Failed to process trans_ltmalarmdatahistory", e);
 			e.printStackTrace();
 		} finally {
 
@@ -686,27 +684,13 @@ public class AlarmUtil {
 				pstmtObj.close();
 				pstmtObj = null;
 			}
-			
-//			if(connObj != null) {
-//				connObj.close();
-//				connObj = null;
-//			}
 		}
 	}
 
 	public void insertIntoLiAlarmLastStatus(int[] alarm,int smSiteId, int smSitetypeid, String siteId, long _recordtime, long dbCreationTime, Date hpDate, Connection connObj) throws Exception {
 
-//		Connection connObj = null;
 		PreparedStatement pstmtObj = null;
-//		ConnectionPool jdbcObj = new ConnectionPool();
-//		DataSource dataSource = jdbcObj.setUpPool();
-//		jdbcObj.printDbStatus();
-//
-//		// Performing Database Operation!
-//		System.out.println("\n=====Making A New Connection Object For Db Transaction=====\n");
-//		connObj = dataSource.getConnection();
-//		jdbcObj.printDbStatus(); 
-//		
+
 		try {
 			//Query3
 			pstmtObj = connObj.prepareStatement("insert into trans_ltmalarmlaststatus(Alarm_409,Alarm_410,Alarm_411,Alarm_412,Alarm_413,Alarm_414,Alarm_415,Alarm_416,Alarm_417,Alarm_418,Alarm_419,Alarm_420,Alarm_421,Alarm_422,Alarm_423,Alarm_424,Alarm_425,Alarm_426,Alarm_427,Alarm_428,Alarm_429,Alarm_430,Alarm_431,Alarm_432,Alarm_433,Alarm_434,Alarm_435,Alarm_436,Alarm_437,Alarm_438,Alarm_439,Alarm_440,Alarm_441,Alarm_442,Alarm_443,Alarm_444,Alarm_445,Alarm_446,Alarm_447,Alarm_448,Alarm_449,Alarm_450,Alarm_451,Alarm_452,Alarm_453,Alarm_454,Alarm_455,Alarm_456,Alarm_457,Alarm_458,Alarm_459,Alarm_460,Alarm_461,Alarm_462,Alarm_463,Alarm_464,Alarm_465,Alarm_466,Alarm_467,Alarm_468,Alarm_469,Alarm_470,Alarm_471,Alarm_472,Alarm_473,Alarm_474,Alarm_475,Alarm_476,Alarm_477,Alarm_478,Alarm_479,Alarm_480,Alarm_481,Alarm_482,Alarm_483,Alarm_484,Alarm_485,Alarm_486,Alarm_487,Alarm_488,Alarm_489,Alarm_490,Alarm_491,Alarm_492,Alarm_493,Alarm_494,Alarm_495,Alarm_496,Alarm_497,Alarm_498,Alarm_499,Alarm_500,Alarm_501,Alarm_502,Alarm_503,Alarm_504,Alarm_505,Alarm_506,Alarm_507,Alarm_508,Alarm_509,Alarm_510,Alarm_511,Alarm_512,Alarm_513,Alarm_514,Alarm_515,Alarm_516,Alarm_517,Alarm_518,Alarm_519,Alarm_520,Alarm_521,Alarm_522,Alarm_523,Alarm_524,Alarm_525,Alarm_526,Alarm_527,Alarm_528,Alarm_529,Alarm_530,Alarm_531,Alarm_532,Alarm_533,Alarm_534,Alarm_535,Alarm_536,Alarm_537,Alarm_538,Alarm_539,Alarm_540,Alarm_541,Alarm_542,Alarm_543,Alarm_544,Alarm_545,Alarm_546,Alarm_547,Alarm_548,Alarm_549,Alarm_550,Alarm_551,Alarm_552,Alarm_553,Alarm_554,Alarm_555,Alarm_556,Alarm_557,Alarm_558,Alarm_559,Alarm_560,Alarm_561,Alarm_562,Alarm_563,Alarm_564,Alarm_565,Alarm_566,Alarm_567,Alarm_568,Alarm_569,Alarm_570,Alarm_571,Alarm_572,Alarm_573,Alarm_574,Alarm_575,Alarm_576,Alarm_577,Alarm_578,Alarm_579,Alarm_580,Alarm_581,Alarm_582,Alarm_583,Alarm_584,Alarm_585,Alarm_586,Alarm_587,Alarm_588,Alarm_589,Alarm_590,Alarm_591,Alarm_592,Alarm_593,Alarm_594,Alarm_595,Alarm_596,Alarm_597,Alarm_598,Alarm_599,Alarm_600,Alarm_601,Alarm_602,Alarm_603,Alarm_604,Alarm_605,Alarm_606,Alarm_607,Alarm_608,Alarm_609,Alarm_610,Alarm_611,Alarm_612,Alarm_613,Alarm_614,Alarm_615,Alarm_616,Alarm_617,Alarm_618,Alarm_619,Alarm_620,Alarm_621,Alarm_622,Alarm_623,Alarm_624,Alarm_625,Alarm_626,Alarm_627,Alarm_628,Alarm_629,Alarm_630,Alarm_631,Alarm_632,Alarm_633,Alarm_634,Alarm_635,Alarm_636,Alarm_637,Alarm_638,Alarm_639,Alarm_640,Alarm_641,Alarm_642,Alarm_643,Alarm_644,Alarm_645,Alarm_646,Alarm_647,Alarm_648,Alarm_649,Alarm_650,Alarm_651,Alarm_652,Alarm_653,Alarm_654,Alarm_655,Alarm_656,Alarm_657,Alarm_658,Alarm_659,Alarm_660,Alarm_661,Alarm_662,Alarm_663,Alarm_664,Alarm_665,Alarm_666,Alarm_667,Alarm_668,Alarm_669,Alarm_670,Alarm_671,Alarm_672,Alarm_673,Alarm_674,Alarm_675,Alarm_676,Alarm_677,Alarm_678,Alarm_679,Alarm_680,Alarm_681,Alarm_682,Alarm_683,Alarm_684,Alarm_685,Alarm_686,Alarm_687,Alarm_688,Alarm_689,Alarm_690,Alarm_691,Alarm_692,Alarm_693,Alarm_694,Alarm_695,Alarm_696,Alarm_697,Alarm_698,Alarm_699,Alarm_700,Alarm_701,Alarm_702,Alarm_703,Alarm_704,Alarm_705,Alarm_706,Alarm_707,Alarm_708,Alarm_709,Alarm_710,Alarm_711,Alarm_712,Alarm_713,Alarm_714,Alarm_715,Alarm_716,Alarm_717,Alarm_718,Alarm_719,Alarm_720,Alarm_721,Alarm_722,Alarm_723,Alarm_724,Alarm_725,Alarm_726,Alarm_727,Alarm_728,Alarm_729,Alarm_730,Alarm_731,Alarm_732,Alarm_733,Alarm_734,Alarm_735,Alarm_736,Alarm_737,Alarm_738,Alarm_739,Alarm_740,Alarm_741,Alarm_742,Alarm_743,Alarm_744,Alarm_745,Alarm_746,Alarm_747,Alarm_748,Alarm_749,Alarm_750,Alarm_751,Alarm_752,Alarm_753,Alarm_754,Alarm_755,Alarm_756,Alarm_757,Alarm_758,Alarm_759,Alarm_760,Alarm_761,Alarm_762,Alarm_763,Alarm_764,Alarm_765,Alarm_766,Alarm_767,Alarm_768,Alarm_769,Alarm_770,Alarm_771,Alarm_772,Alarm_773,Alarm_774,Alarm_775,Alarm_776,Alarm_777,Alarm_778,Alarm_779,Alarm_780,Alarm_781,Alarm_782,Alarm_783,Alarm_784,Alarm_785,Alarm_786,Alarm_787,Alarm_788,Alarm_789,Alarm_790,Alarm_791,Alarm_792,Alarm_793,Alarm_794,Alarm_795,Alarm_796,Alarm_797,Alarm_798,Alarm_799,Alarm_800,Alarm_801,Alarm_802,Alarm_803,Alarm_804,Alarm_805,Alarm_806,Alarm_807,Alarm_808,Alarm_809,Alarm_810,Alarm_811,Alarm_812,Alarm_813,Alarm_814,Alarm_815,Alarm_816,Alarm_817,Alarm_818,Alarm_819,Alarm_820,Alarm_821,Alarm_822,Alarm_823,Alarm_824,Alarm_825,Alarm_826,Alarm_827,Alarm_828,Alarm_829,Alarm_830,Alarm_831,Alarm_832,Alarm_833,Alarm_834,Alarm_835,Alarm_836,Alarm_837,Alarm_838,Alarm_839,Alarm_840,Alarm_841,Alarm_842,Alarm_843,Alarm_844,Alarm_845,Alarm_846,Alarm_847,Alarm_848,Alarm_849,Alarm_850,Alarm_851,Alarm_852,Alarm_853,Alarm_854,Alarm_855,Alarm_856,Alarm_857,Alarm_858,Alarm_859,Alarm_860,Alarm_861,Alarm_862,Alarm_863,Alarm_864,Alarm_865,Alarm_866,Alarm_867,Alarm_868,Alarm_869,Alarm_870,Alarm_871,Alarm_872,Alarm_873,Alarm_874,Alarm_875,Alarm_876,Alarm_877,Alarm_878,Alarm_879,Alarm_880,Alarm_881,Alarm_882,Alarm_883,Alarm_884,Alarm_885,Alarm_886,Alarm_887,Alarm_888,Alarm_889,Alarm_890,Alarm_891,Alarm_892,Alarm_893,Alarm_894,Alarm_895,Alarm_896,Alarm_897,Alarm_898,Alarm_899,Alarm_900,Alarm_901,Alarm_902,Alarm_903,Alarm_904,Alarm_905,Alarm_906,Alarm_907,Alarm_908,Alarm_909,Alarm_910,Alarm_911,Alarm_912,Alarm_913,Alarm_914,Alarm_915,Alarm_916,Alarm_917,Alarm_918,Alarm_919,Alarm_920,Alarm_921,Alarm_922,Alarm_923,Alarm_924,Alarm_925,Alarm_926,Alarm_927,Alarm_928,Alarm_929,Alarm_930,Alarm_931,Alarm_932,Alarm_933,Alarm_934,Alarm_935,Alarm_936,Alarm_937,Alarm_938,Alarm_939,Alarm_940,Alarm_941,Alarm_942,Alarm_943,Alarm_944,Alarm_945,Alarm_946,Alarm_947,Alarm_948,Alarm_949,Alarm_950,Alarm_951,Alarm_952,Alarm_953,Alarm_954,Alarm_955,Alarm_956,Alarm_957,Alarm_958,Alarm_959,Alarm_960,Alarm_961,Alarm_962,Alarm_963,Alarm_964,Alarm_965,Alarm_966,Alarm_967,Alarm_968,Alarm_969,Alarm_970,Alarm_971,Alarm_972,Alarm_973,Alarm_974,Alarm_975,Alarm_976,Alarm_977,Alarm_978,Alarm_979,Alarm_980,Alarm_981,Alarm_982,Alarm_983,Alarm_984,Alarm_985,Alarm_986,Alarm_987,Alarm_988,Alarm_989,Alarm_990,Alarm_991,Alarm_992,Alarm_993,Alarm_994,Alarm_995,Alarm_996,Alarm_997,Alarm_998,Alarm_999,Alarm_1000,Alarm_1001,Alarm_1002,Alarm_1003,Alarm_1004,Alarm_1005,Alarm_1006,Alarm_1007,Alarm_1008,Alarm_1009,Alarm_1010,Alarm_1011,Alarm_1012,Alarm_1013,Alarm_1014,Alarm_1015,Alarm_1016,Alarm_1017,Alarm_1018,Alarm_1019,Alarm_1020,Alarm_1021,Alarm_1022,Alarm_1023,Alarm_1024,Alarm_1025,Alarm_1026,Alarm_1027,Alarm_1028,Alarm_1029,Alarm_1030,Alarm_1031,Alarm_1032,Alarm_1033,Alarm_1034,Alarm_1035,Alarm_1036,Alarm_1037,Alarm_1038,Alarm_1039,Alarm_1040,Alarm_1041,Alarm_1042,Alarm_1043,Alarm_1044,Alarm_1045,Alarm_1046,Alarm_1047,Alarm_1048,smSiteID,smSitetypeid,smSiteCode,ltmTimestamp,DBCreationTimestamp) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
@@ -1358,18 +1342,239 @@ public class AlarmUtil {
 			pstmtObj.executeUpdate();	
 		} catch (SQLException e) {
 			e.printStackTrace();
+			logger.error ("Failed to process trans_ltmalarmlaststatus", e);
 		} finally {
 
 			if(pstmtObj != null) {
 				pstmtObj.close();
 				pstmtObj = null;
 			}
-			
-//			if(connObj != null) {
-//				connObj.close();
-//				connObj = null;
-//			}
 		}
 	}
 
+	public char[] processSysOutLoadStatus(String sysOutLoadStatus) {
+
+		String sysOutLoadStatuspreBin = new BigInteger(sysOutLoadStatus, 16).toString(2);
+		Integer sysOutLoadStatuslength = sysOutLoadStatuspreBin.length();
+		if (sysOutLoadStatuslength < 8) {
+			for (int i = 0; i < 8 - sysOutLoadStatuslength; i++) {
+				sysOutLoadStatuspreBin = "0" + sysOutLoadStatuspreBin;
+			}
+		}
+
+		if(sysOutLoadStatuspreBin.length()!=16) {
+
+			int need = 16-sysOutLoadStatuspreBin.length();
+			for (int j = 1; j<=need; j++) {
+				sysOutLoadStatuspreBin = "0" + sysOutLoadStatuspreBin;
+			}
+		}
+		char[] alarmCharArray3 = new char[16];
+		if(sysOutLoadStatus.equalsIgnoreCase("0000")) {
+
+			alarmCharArray3 = "0000000000000000".toCharArray();
+		} else {
+			alarmCharArray3 = sysOutLoadStatuspreBin.toCharArray();
+		}
+		return alarmCharArray3;
+	}
+
+	public char[] processCommStatus(String commStatus) {
+
+		/*Comm Status 2 Byte*/
+		String commStatusPrebin = new BigInteger(commStatus, 16).toString(2);
+		Integer commstatusLength = commStatusPrebin.length();
+		if (commstatusLength < 8) {
+			for (int i = 0; i < 8 - commstatusLength; i++) {
+				commStatusPrebin = "0" + commStatusPrebin;
+			}
+		}
+
+		if(commStatusPrebin.length()!=8) {
+
+			int need = 8-commStatusPrebin.length();
+			for (int j = 1; j<=need; j++) {
+				commStatusPrebin = "0" + commStatusPrebin;
+			}
+		}
+		char[] alarmCharArray2 = new char[8];
+		if(commStatus.equalsIgnoreCase("00")) {
+
+			alarmCharArray2 = "00000000".toCharArray();
+		} else {
+			alarmCharArray2 = commStatusPrebin.toCharArray();
+		}
+		return alarmCharArray2;
+	}
+
+	public char[] processStatusString(String statusString) {
+
+		String statusPrebin = new BigInteger(statusString, 16).toString(2);
+		Integer statusLength = statusPrebin.length();
+		if (statusLength < 8) {
+			for (int i = 0; i < 8 - statusLength; i++) {
+				statusPrebin = "0" + statusPrebin;
+			}
+		}
+
+		if(statusPrebin.length()!=32) {
+
+			int need = 32-statusPrebin.length();
+			for (int j = 1; j<=need; j++) {
+				statusPrebin = "0" + statusPrebin;
+			}
+		}
+		char[] alarmCharArray1 = new char[32];
+		if(statusString.equalsIgnoreCase("00000000")) {
+
+			alarmCharArray1 = "00000000000000000000000000000000".toCharArray();
+		} else {
+			alarmCharArray1 = statusPrebin.toCharArray();
+		}
+		return alarmCharArray1;
+	}
+
+	public char[] processAlarmString(String alarmString) {
+
+		String preBin = new BigInteger(alarmString, 16).toString(2);
+		Integer length = preBin.length();
+		if (length < 8) {
+			for (int i = 0; i < 8 - length; i++) {
+				preBin = "0" + preBin;
+			}
+		}
+
+		if(preBin.length()!=64) {
+
+			int need = 64-preBin.length();
+			for (int j = 1; j<=need; j++) {
+				preBin = "0" + preBin;
+			}
+		}
+		char[] alarmCharArray = new char[64];
+		if(alarmString.equalsIgnoreCase("0000000000000000")) {
+
+			alarmCharArray = "0000000000000000000000000000000000000000000000000000000000000000".toCharArray();
+		} else {
+			alarmCharArray = preBin.toCharArray();
+		}
+		return alarmCharArray;
+	}
+
+	public char[] processTwoByteAlarm(String twoByteStatus) {
+
+		String twoByteStatusPreBin = new BigInteger(twoByteStatus, 16).toString(2);
+		Integer twoByteLength = twoByteStatusPreBin.length();
+		if (twoByteLength < 8) {
+			for (int i = 0; i < 8 - twoByteLength; i++) {
+				twoByteStatusPreBin = "0" + twoByteStatusPreBin;
+			}
+		}
+
+		if(twoByteStatusPreBin.length()!=4) {
+
+			int need = 4-twoByteStatusPreBin.length();
+			for (int j = 1; j<=need; j++) {
+				twoByteStatusPreBin = "0" + twoByteStatusPreBin;
+			}
+		}
+		char[] alarmCharArray = new char[8];
+		if(twoByteStatus.equalsIgnoreCase("00")) {
+
+			alarmCharArray = "00000000".toCharArray();
+		} else {
+			alarmCharArray = twoByteStatusPreBin.toCharArray();
+		}
+		return alarmCharArray;
+	}
+
+	public char[] processThirtyTwo(String invStatus) {
+
+		String preBin = new BigInteger(invStatus, 16).toString(2);
+		Integer solarStatusMod1length = preBin.length();
+		if (solarStatusMod1length < 32) {
+			for (int i = 0; i < 32 - solarStatusMod1length; i++) {
+				preBin = "0" + preBin;
+			}
+		}
+
+		if(preBin.length()!=32) {
+
+			int need = 32-preBin.length();
+			for (int j = 1; j<=need; j++) {
+				preBin = "0" + preBin;
+			}
+		}
+		char[] alarmCharArray = new char[32];
+		if(invStatus.equalsIgnoreCase("00")) {
+
+			alarmCharArray = "00000000000000000000000000000000".toCharArray();
+		} else {
+			alarmCharArray = preBin.toCharArray();
+		}
+		return alarmCharArray;
+	}
+
+
+	public int getMaxTTNumber(int siteId,String alarmPin, Connection connObj) throws Exception {
+
+		PreparedStatement pstmtObj = null;
+		int msgId=0;
+		try {   
+			// Performing Database Operation!
+			System.out.println("\n=====Making A New Connection Object For Db Transaction=====\n");
+			pstmtObj = connObj.prepareStatement("Select max(alrTTNumber) from trans_alarmrecords");
+
+			ResultSet rsObj = pstmtObj.executeQuery();
+
+			while(rsObj.next()){
+				msgId = rsObj.getInt(1);
+			}
+
+			rsObj.close();
+			pstmtObj.close();
+
+			System.out.println("\n=====Releasing Connection Object To Pool=====\n");            
+		} catch(Exception sqlException) {
+			sqlException.printStackTrace();
+		} finally {
+			try {
+				// Closing PreparedStatement Object
+				if(pstmtObj != null) {
+					pstmtObj.close();
+					pstmtObj = null;
+				}
+			} catch(Exception sqlException) {
+				sqlException.printStackTrace();
+			}
+		}
+		return msgId+1;
+	}
+
+	public char[] processInverterAlarm(String invStatus) {
+
+		String preBin = new BigInteger(invStatus, 16).toString(2);
+		Integer solarStatusMod1length = preBin.length();
+		if (solarStatusMod1length < 8) {
+			for (int i = 0; i < 8 - solarStatusMod1length; i++) {
+				preBin = "0" + preBin;
+			}
+		}
+
+		if(preBin.length()!=4) {
+
+			int need = 4-preBin.length();
+			for (int j = 1; j<=need; j++) {
+				preBin = "0" + preBin;
+			}
+		}
+		char[] alarmCharArray = new char[8];
+		if(invStatus.equalsIgnoreCase("00")) {
+
+			alarmCharArray = "00000000".toCharArray();
+		} else {
+			alarmCharArray = preBin.toCharArray();
+		}
+		return alarmCharArray;
+	}
 }

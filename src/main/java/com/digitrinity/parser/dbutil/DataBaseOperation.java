@@ -1,4 +1,4 @@
-package com.digitrinity.parser.util;
+package com.digitrinity.parser.dbutil;
 
 import java.io.FileInputStream;
 import java.io.InputStream;

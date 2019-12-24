@@ -11,17 +11,17 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.digitrinity.parser.dateutil.DateTime;
-import com.digitrinity.parser.util.ConnectionPool;
+import com.digitrinity.parser.dbutil.ConnectionPool;
 
-public class ParseRecordThread {
+public class DataProcessor {
 
 	private static final TimeZone gmtTimezone   = TimeZone.getTimeZone("GMT+6:30");
-	private static Logger logger = LogManager.getLogger(ParseRecordThread.class.getName());
+	private static Logger logger = LogManager.getLogger(DataProcessor.class.getName());
 
-	public boolean parseRecord(String deviceData, int messageId) throws Exception {
+	public boolean parseData(String deviceData, int messageId) throws Exception {
 
-		logger.debug("Started Message Processing--");
-		String siteId =  deviceData.substring(5, 14);
+		logger.debug("!! Started Message Parsing !!");
+		String smSiteCode =  deviceData.substring(5, 14);
 		String date = deviceData.substring(14, 16);
 		String hour = deviceData.substring(16, 18);
 		String minutes = deviceData.substring(18, 20);
@@ -493,7 +493,7 @@ public class ParseRecordThread {
 
 		/* Li Battery Section 1*/
 		float liBattVolt1 = Float.parseFloat(deviceData.substring(1269, 1272))/10;
-		float liBattCurr1 = Float.parseFloat(deviceData.substring(1272, 1277).replace("+", ""))/10;
+		float liBattCurr1 = Float.parseFloat(deviceData.substring(1272, 1277).replace("+", ""))/100;
 
 		int liSoc1 = Integer.parseInt(deviceData.substring(1277, 1280));
 		int liSoh1 = Integer.parseInt(deviceData.substring(1280, 1283));
@@ -504,7 +504,7 @@ public class ParseRecordThread {
 		float liBattVolt2 = Float.parseFloat(deviceData.substring(1295, 1298))/10;
 
 
-		float liBattCurr2 = Float.parseFloat(deviceData.substring(1298, 1303).replace("+", ""))/10;
+		float liBattCurr2 = Float.parseFloat(deviceData.substring(1298, 1303).replace("+", ""))/100;
 
 
 		int liSoc2 = Integer.parseInt(deviceData.substring(1303, 1306));
@@ -517,7 +517,7 @@ public class ParseRecordThread {
 		/* Li Battery Section 3*/
 		float liBattVolt3 = Float.parseFloat(deviceData.substring(1321, 1324))/10;
 
-		float liBattCurr3 = Float.parseFloat(deviceData.substring(1324, 1329).replace("+", ""))/10;
+		float liBattCurr3 = Float.parseFloat(deviceData.substring(1324, 1329).replace("+", ""))/100;
 
 		int liSoc3 = Integer.parseInt(deviceData.substring(1329, 1332));
 		int liSoh3 = Integer.parseInt(deviceData.substring(1332, 1335));
@@ -528,7 +528,7 @@ public class ParseRecordThread {
 
 		/* Li Battery Section 4*/
 		float liBattVolt4 = Float.parseFloat(deviceData.substring(1347, 1350))/10;
-		float liBattCurr4 = Float.parseFloat(deviceData.substring(1350, 1355).replace("+", ""))/10;
+		float liBattCurr4 = Float.parseFloat(deviceData.substring(1350, 1355).replace("+", ""))/100;
 		int liSoc4 = Integer.parseInt(deviceData.substring(1355, 1358));
 		int liSoh4 = Integer.parseInt(deviceData.substring(1358, 1361));
 		float liBattTemp4 = Float.parseFloat(deviceData.substring(1361, 1365))/10;
@@ -537,7 +537,7 @@ public class ParseRecordThread {
 		/* Li Battery Section 5*/
 		float liBattVolt5 = Float.parseFloat(deviceData.substring(1373, 1376))/10;
 
-		float liBattCurr5 = Float.parseFloat(deviceData.substring(1376, 1381).replace("+", ""))/10;
+		float liBattCurr5 = Float.parseFloat(deviceData.substring(1376, 1381).replace("+", ""))/100;
 		int liSoc5 = Integer.parseInt(deviceData.substring(1381, 1384));
 		int liSoh5 = Integer.parseInt(deviceData.substring(1384, 1387));
 		float liBattTemp5 = Float.parseFloat(deviceData.substring(1387, 1391))/10;
@@ -545,8 +545,7 @@ public class ParseRecordThread {
 
 		/* Li Battery Section 6*/
 		float liBattVolt6 = Float.parseFloat(deviceData.substring(1399, 1402))/10;
-		System.out.println("liBattVolt6-----"+liBattVolt6);
-		float liBattCurr6 = Float.parseFloat(deviceData.substring(1402, 1407).replace("+", ""))/10;
+		float liBattCurr6 = Float.parseFloat(deviceData.substring(1402, 1407).replace("+", ""))/100;
 		int liSoc6 = Integer.parseInt(deviceData.substring(1407, 1410));
 		int liSoh6 = Integer.parseInt(deviceData.substring(1410, 1413));
 		float liBattTemp6 = Float.parseFloat(deviceData.substring(1413, 1417))/10;
@@ -554,8 +553,7 @@ public class ParseRecordThread {
 
 		/* Li Battery Section 7*/
 		float liBattVolt7 = Float.parseFloat(deviceData.substring(1425, 1428))/10;
-		System.out.println("liBattVolt7-----"+liBattVolt7);
-		float liBattCurr7 = Float.parseFloat(deviceData.substring(1428, 1433).replace("+", ""))/10;
+		float liBattCurr7 = Float.parseFloat(deviceData.substring(1428, 1433).replace("+", ""))/100;
 		int liSoc7 = Integer.parseInt(deviceData.substring(1433, 1436));
 		int liSoh7 = Integer.parseInt(deviceData.substring(1436, 1439));
 		float liBattTemp7 = Float.parseFloat(deviceData.substring(1439, 1443))/10;
@@ -563,7 +561,7 @@ public class ParseRecordThread {
 
 		/* Li Battery Section 8*/
 		float liBattVolt8 = Float.parseFloat(deviceData.substring(1451, 1454))/10;
-		float liBattCurr8 = Float.parseFloat(deviceData.substring(1454, 1459).replace("+", ""))/10;
+		float liBattCurr8 = Float.parseFloat(deviceData.substring(1454, 1459).replace("+", ""))/100;
 		int liSoc8 = Integer.parseInt(deviceData.substring(1459, 1462));
 		int liSoh8 = Integer.parseInt(deviceData.substring(1462, 1465));
 		float liBattTemp8 = Float.parseFloat(deviceData.substring(1465, 1469))/10;
@@ -571,7 +569,7 @@ public class ParseRecordThread {
 
 		/* Li Battery Section 9*/
 		float liBattVolt9 = Float.parseFloat(deviceData.substring(1477, 1480))/10;
-		float liBattCurr9 = Float.parseFloat(deviceData.substring(1480, 1485).replace("+", ""))/10;
+		float liBattCurr9 = Float.parseFloat(deviceData.substring(1480, 1485).replace("+", ""))/100;
 		int liSoc9 = Integer.parseInt(deviceData.substring(1485, 1488));
 		int liSoh9 = Integer.parseInt(deviceData.substring(1488, 1491));
 		float liBattTemp9 = Float.parseFloat(deviceData.substring(1491, 1495))/10;
@@ -579,7 +577,7 @@ public class ParseRecordThread {
 
 		/* Li Battery Section 10*/
 		float liBattVolt10 = Float.parseFloat(deviceData.substring(1503, 1506))/10;
-		float liBattCurr10 = Float.parseFloat(deviceData.substring(1506, 1511).replace("+", ""))/10;
+		float liBattCurr10 = Float.parseFloat(deviceData.substring(1506, 1511).replace("+", ""))/100;
 		int liSoc10 = Integer.parseInt(deviceData.substring(1511, 1514));
 		int liSoh10 = Integer.parseInt(deviceData.substring(1514, 1517));
 		float liBattTemp10 = Float.parseFloat(deviceData.substring(1517, 1521))/10;
@@ -587,7 +585,7 @@ public class ParseRecordThread {
 
 		/* Li Battery Section 11*/
 		float liBattVolt11 = Float.parseFloat(deviceData.substring(1529, 1532))/10;
-		float liBattCurr11 = Float.parseFloat(deviceData.substring(1532, 1537).replace("+", ""))/10;
+		float liBattCurr11 = Float.parseFloat(deviceData.substring(1532, 1537).replace("+", ""))/100;
 		int liSoc11 = Integer.parseInt(deviceData.substring(1537, 1540));
 		int liSoh11 = Integer.parseInt(deviceData.substring(1540, 1543));
 		float liBattTemp11 = Float.parseFloat(deviceData.substring(1543, 1547))/10;
@@ -595,7 +593,7 @@ public class ParseRecordThread {
 
 		/* Li Battery Section 12*/
 		float liBattVolt12 = Float.parseFloat(deviceData.substring(1555, 1558))/10;
-		float liBattCurr12 = Float.parseFloat(deviceData.substring(1558, 1563).replace("+", ""))/10;
+		float liBattCurr12 = Float.parseFloat(deviceData.substring(1558, 1563).replace("+", ""))/100;
 		int liSoc12 = Integer.parseInt(deviceData.substring(1563, 1566));
 		int liSoh12 = Integer.parseInt(deviceData.substring(1566, 1569));
 		float liBattTemp12 = Float.parseFloat(deviceData.substring(1569, 1573))/10;
@@ -603,7 +601,7 @@ public class ParseRecordThread {
 
 		/* Li Battery Section 13*/
 		float liBattVolt13 = Float.parseFloat(deviceData.substring(1581, 1584))/10;
-		float liBattCurr13 = Float.parseFloat(deviceData.substring(1584, 1589).replace("+", ""))/10;
+		float liBattCurr13 = Float.parseFloat(deviceData.substring(1584, 1589).replace("+", ""))/100;
 		int liSoc13 = Integer.parseInt(deviceData.substring(1589, 1592));
 		int liSoh13 = Integer.parseInt(deviceData.substring(1592, 1595));
 		float liBattTemp13 = Float.parseFloat(deviceData.substring(1595, 1599))/10;
@@ -611,7 +609,7 @@ public class ParseRecordThread {
 
 		/* Li Battery Section 14*/
 		float liBattVolt14 = Float.parseFloat(deviceData.substring(1607, 1610))/10;
-		float liBattCurr14 = Float.parseFloat(deviceData.substring(1610, 1615).replace("+", ""))/10;
+		float liBattCurr14 = Float.parseFloat(deviceData.substring(1610, 1615).replace("+", ""))/100;
 		int liSoc14 = Integer.parseInt(deviceData.substring(1615, 1618));
 		int liSoh14 = Integer.parseInt(deviceData.substring(1618, 1621));
 		float liBattTemp14 = Float.parseFloat(deviceData.substring(1621, 1625))/10;
@@ -619,7 +617,7 @@ public class ParseRecordThread {
 
 		/* Li Battery Section 15*/
 		float liBattVolt15 = Float.parseFloat(deviceData.substring(1633, 1636))/10;
-		float liBattCurr15 = Float.parseFloat(deviceData.substring(1636, 1641).replace("+", ""))/10;
+		float liBattCurr15 = Float.parseFloat(deviceData.substring(1636, 1641).replace("+", ""))/100;
 		int liSoc15 = Integer.parseInt(deviceData.substring(1641, 1644));
 		int liSoh15 = Integer.parseInt(deviceData.substring(1644, 1647));
 		float liBattTemp15 = Float.parseFloat(deviceData.substring(1647, 1651))/10;
@@ -627,7 +625,7 @@ public class ParseRecordThread {
 
 		/* Li Battery Section 16*/
 		float liBattVolt16 = Float.parseFloat(deviceData.substring(1659, 1662))/10;
-		float liBattCurr16 = Float.parseFloat(deviceData.substring(1662, 1667).replace("+", ""))/10;
+		float liBattCurr16 = Float.parseFloat(deviceData.substring(1662, 1667).replace("+", ""))/100;
 		int liSoc16 = Integer.parseInt(deviceData.substring(1667, 1670));
 		int liSoh16 = Integer.parseInt(deviceData.substring(1670, 1673));
 		float liBattTemp16 = Float.parseFloat(deviceData.substring(1673, 1677))/10;
@@ -635,7 +633,7 @@ public class ParseRecordThread {
 
 		/* Li Battery Section 17*/
 		float liBattVolt17 = Float.parseFloat(deviceData.substring(1685, 1688))/10;
-		float liBattCurr17 = Float.parseFloat(deviceData.substring(1688, 1693).replace("+", ""))/10;
+		float liBattCurr17 = Float.parseFloat(deviceData.substring(1688, 1693).replace("+", ""))/100;
 		int liSoc17 = Integer.parseInt(deviceData.substring(1693, 1696));
 		int liSoh17 = Integer.parseInt(deviceData.substring(1696, 1699));
 		float liBattTemp17 = Float.parseFloat(deviceData.substring(1699, 1703))/10;
@@ -643,7 +641,7 @@ public class ParseRecordThread {
 
 		/* Li Battery Section 18*/
 		float liBattVolt18 = Float.parseFloat(deviceData.substring(1711, 1714))/10;
-		float liBattCurr18 = Float.parseFloat(deviceData.substring(1714, 1719).replace("+", ""))/10;
+		float liBattCurr18 = Float.parseFloat(deviceData.substring(1714, 1719).replace("+", ""))/100;
 		int liSoc18 = Integer.parseInt(deviceData.substring(1719, 1722));
 		int liSoh18 = Integer.parseInt(deviceData.substring(1722, 1725));
 		float liBattTemp18 = Float.parseFloat(deviceData.substring(1725, 1729))/10;
@@ -651,7 +649,7 @@ public class ParseRecordThread {
 
 		/* Li Battery Section 19*/
 		float liBattVolt19 = Float.parseFloat(deviceData.substring(1737, 1740))/10;
-		float liBattCurr19 = Float.parseFloat(deviceData.substring(1740, 1745).replace("+", ""))/10;
+		float liBattCurr19 = Float.parseFloat(deviceData.substring(1740, 1745).replace("+", ""))/100;
 		int liSoc19 = Integer.parseInt(deviceData.substring(1745, 1748));
 		int liSoh19 = Integer.parseInt(deviceData.substring(1748, 1751));
 		float liBattTemp19 = Float.parseFloat(deviceData.substring(1751, 1755))/10;
@@ -659,18 +657,18 @@ public class ParseRecordThread {
 
 		/* Li Battery Section 20*/
 		float liBattVolt20 = Float.parseFloat(deviceData.substring(1763, 1766))/10;
-		float liBattCurr20 = Float.parseFloat(deviceData.substring(1766, 1771).replace("+", ""))/10;
+		float liBattCurr20 = Float.parseFloat(deviceData.substring(1766, 1771).replace("+", ""))/100;
 		int liSoc20 = Integer.parseInt(deviceData.substring(1771, 1774));
 		int liSoh20 = Integer.parseInt(deviceData.substring(1774, 1777));
 		float liBattTemp20 = Float.parseFloat(deviceData.substring(1777, 1781))/10;
 		String liBattStatus20 = deviceData.substring(1781, 1789);
 
 		String stringTerm = deviceData.substring(1782, 1783);
+		
+		logger.debug("!! Completed Message Parsing !!");
 
 		long _recordtime    = _parseDate(year,month,date,hour,minutes,seconds);
 		long dbCreationTime = DateTime.getCurrentTimeSec();
-		logger.info("before _recordtime---"+_recordtime+" dbCreationTime-----"+dbCreationTime+" for site:"+siteId);
-		System.out.println("before _recordtime---"+_recordtime+" dbCreationTime-----"+dbCreationTime+" for site:"+siteId);
 
 		if (_recordtime > (dbCreationTime+3600))
 			_recordtime = dbCreationTime;
@@ -694,20 +692,17 @@ public class ParseRecordThread {
 		jdbcObj.printDbStatus();
 
 		// Performing Database Operation!
-		System.out.println("\n=====Making A New Connection Object For Db Transaction=====\n");
 		connObj = dataSource.getConnection();
 		jdbcObj.printDbStatus(); 
 
-		pstmtObj = connObj.prepareStatement("Select * from sitemaster where smSiteCode ='"+siteId+"' "
+		pstmtObj = connObj.prepareStatement("Select * from sitemaster where smSiteCode ='"+smSiteCode+"' "
 				+ "and smSiteactivestatus=1");
-		System.out.println(pstmtObj);
 
 		ResultSet rsObj2 = pstmtObj.executeQuery();
 
 		while(rsObj2.next()){
 
 			smSiteId = rsObj2.getInt("smSiteID");
-			System.out.println("smSiteId------------"+smSiteId);
 			smtechempid = rsObj2.getInt("smTechEmpid");
 			smSiteName = rsObj2.getString("smSitename");
 			crClusterID = rsObj2.getInt("crClusterID");
@@ -715,23 +710,20 @@ public class ParseRecordThread {
 			smSitetypeid = rsObj2.getInt("smSitetypeid");
 		}
 
-		System.out.println("smSiteId------------"+smSiteId);
-
-
 		if(smSiteId==0) {
 
 			/* Insert into Not added Device as we didn't find the site from site master*/
 			pstmtObj = connObj.prepareStatement("Insert into notaddedsite (smSiteCode,ndTimestamp) values (?,?)");
 
-			pstmtObj.setString(1, siteId);
+			pstmtObj.setString(1, smSiteCode);
 			pstmtObj.setLong(2, _recordtime);
 			pstmtObj.executeUpdate();
 			connObj.close();
 			pstmtObj.close();
+			logger.info("Site is not configured , data not processed and returning back!!!!!"+siteCode);
 			return true;
 		} else {
 
-			System.out.println("crClusterID---"+crClusterID);
 			pstmtObj.close();
 			pstmtObj = connObj.prepareStatement("Select * from clustermaster where crClusterID ="+crClusterID+"");
 			ResultSet rsZone = pstmtObj.executeQuery();
@@ -760,9 +752,7 @@ public class ParseRecordThread {
 				rgRegion = rgRegionIDResult.getString("rgRegion");
 			}
 
-			System.out.println("smtechempid------------"+smtechempid);
 			pstmtObj = connObj.prepareStatement("Select * from employeemaster where emEmpID ="+smtechempid+"");
-			System.out.println(pstmtObj);
 
 			ResultSet employeeResult = pstmtObj.executeQuery();
 			int emEmpID=0;
@@ -781,15 +771,14 @@ public class ParseRecordThread {
 			}
 			pstmtObj.close();
 			rsObj2.close();
+			
 			long millis=System.currentTimeMillis();  
 			java.sql.Date hpDate=new java.sql.Date(millis);  
-			System.out.println(hpDate); 
 
 			try {   
 				jdbcObj.printDbStatus();
 
 				// Performing Database Operation!
-				System.out.println("\n=====Making A New Connection Object For Db Transaction=====\n");
 				jdbcObj.printDbStatus(); 
 
 				pstmtObj = connObj.prepareStatement("Select * from trans_latestdata  where smSiteID ="+smSiteId+"");
@@ -798,14 +787,8 @@ public class ParseRecordThread {
 				long lastUpdate = 0;
 				boolean isData = lastData.next();
 
-				System.out.println(" Data in trans_latestdata: "+isData);
-
 				if(!isData) {
-
-					System.out.println("No Data in trans_latestdata: ");
-
 					pstmtObj.close();
-
 					pstmtObj = connObj.prepareStatement("insert into trans_latestdata(AccID,smSiteID,rclTimestamp,"
 							+ "Batt_3_temp,Batt_4_temp,Batt_1_temp,Batt_2_temp,Fuellevel_Percentage,Fuellevel_Ltrs,Sitebattvolt,"
 							+ "MDG_R_Volt,MDG_Y_Volt,MDG_B_Volt,MDG_R_Amp,MDG_Y_Amp,MDG_B_Amp,MDG_R_PowerFactor,MDG_Y_PowerFactor,"
@@ -1224,7 +1207,7 @@ public class ParseRecordThread {
 					pstmtObj.setFloat(344,pvOpVoltMod24/10);
 					pstmtObj.setFloat(345,pvOpCurrMod24/10);
 					pstmtObj.setString(346,solarStatusMod24);
-					pstmtObj.setString(347,siteId);
+					pstmtObj.setString(347,smSiteCode);
 					pstmtObj.setLong(348,dbCreationTime);
 					pstmtObj.setInt(349,smSitetypeid);
 
@@ -1369,24 +1352,19 @@ public class ParseRecordThread {
 					pstmtObj.setString(469,liBattStatus20);
 
 					pstmtObj.executeUpdate();
-
-
+					logger.info("Data Inserted into trans_latestdata for first time for site: "+siteCode);
 				} 
 				else {
-
-					System.out.println("Updating Last Status data ");
+					
 					if(isData){
 
 						lastUpdate = lastData.getLong("rclTimestamp");
 					}
 					lastData.close();
-					System.out.println("Time: "+_recordtime+" "+lastUpdate);
-
 					if(_recordtime>= lastUpdate) {
 
 						pstmtObj.close();
-
-						System.out.println("Updating trans_latestdata");
+						logger.info("Updating into trans_latestdata for site: "+siteCode);
 
 						pstmtObj = connObj.prepareStatement("update trans_latestdata set AccID=?,rclTimestamp=?,Batt_3_temp=?,Batt_4_temp=?,Batt_1_temp=?,Batt_2_temp=?,Fuellevel_Percentage=?,Fuellevel_Ltrs=?,Sitebattvolt=?,MDG_R_Volt=?,MDG_Y_Volt=?,MDG_B_Volt=?,MDG_R_Amp=?,MDG_Y_Amp=?,MDG_B_Amp=?,MDG_R_PowerFactor=?,MDG_Y_PowerFactor=?,MDG_B_PowerFactor=?,MDG_R_Power=?,MDG_Y_Power=?,MDG_B_Power=?,MDG_Frequency=?,DG_R_Volt=?,DG_Y_Volt=?,DG_B_Volt=?,DG_R_Amp=?,DG_Y_Amp=?,DG_B_Amp=?,DG_R_PowerFactor=?,DG_Y_PowerFactor=?,DG_B_PowerFactor=?,DG_R_Power=?,DG_Y_Power=?,DG_B_Power=?,DG_Frequency=?,DG_Bat_Volt=?,DG_Tank_Capacity=?,Batt_Charging_Current=?,Batt_Discharging_Current=?,Batt_SOC=?,Batt_Cycle_Count=?,Batt_Capacity_AH=?,Batt_NextFullChargeTime=?,No_of_Batt_Strings=?,MDG_RunHrs=?,DG_RunHrs=?,Batt_RunHrs=?,MDG_Energy=?,DG_Energy=?,Batt_DisEnergy=?,Batt_ChargingEnergy=?,Rect_Input_R_Voltage=?,Rect_Input_Y_Voltage=?,Rect_Input_B_Voltage=?,Rect_Input_R_Current=?,Rect_Input_Y_Current=?,Rect_Input_B_Current=?,Rect_Output_Voltage=?,No_of_Rectfrs=?,Total_Rect_Output_Current=?,Total_DCLoad_Current=?,Total_DCLoad_Energy=?,Opco_1_LoadCurrent=?,Opco_2_LoadCurrent=?,Opco_3_LoadCurrent=?,Opco_4_LoadCurrent=?,Opco_1_Energy=?,Opco_2_Energy=?,Opco_3_Energy=?,Opco_4_Energy=?,InputVoltage_SlrModule1=?,InputCurrent_SlrModule1=?,InputPower_SlrModule1=?,OutputVoltage_SlrModule1=?,OutputCurrent_SlrModule1=?,OutputPower_SlrModule1=?,SolarModule1Status=?,InputVoltage_SlrModule2=?,InputCurrent_SlrModule2=?,InputPower_SlrModule2=?,OutputVoltage_SlrModule2=?,OutputCurrent_SlrModule2=?,OutputPower_SlrModule2=?,SolarModule2Status=?,InputVoltage_SlrModule3=?,InputCurrent_SlrModule3=?,InputPower_SlrModule3=?,OutputVoltage_SlrModule3=?,OutputCurrent_SlrModule3=?,OutputPower_SlrModule3=?,SolarModule3Status=?,InputVoltage_SlrModule4=?,InputCurrent_SlrModule4=?,InputPower_SlrModule4=?,OutputVoltage_SlrModule4=?,OutputCurrent_SlrModule4=?,OutputPower_SlrModule4=?,SolarModule4Status=?,InputVoltage_SlrModule5=?,InputCurrent_SlrModule5=?,InputPower_SlrModule5=?,OutputVoltage_SlrModule5=?,OutputCurrent_SlrModule5=?,OutputPower_SlrModule5=?,SolarModule5Status=?,InputVoltage_SlrModule6=?,InputCurrent_SlrModule6=?,InputPower_SlrModule6=?,OutputVoltage_SlrModule6=?,OutputCurrent_SlrModule6=?,OutputPower_SlrModule6=?,SolarModule6Status=?,InputVoltage_SlrModule7=?,InputCurrent_SlrModule7=?,InputPower_SlrModule7=?,OutputVoltage_SlrModule7=?,OutputCurrent_SlrModule7=?,OutputPower_SlrModule7=?,SolarModule7Status=?,InputVoltage_SlrModule8=?,InputCurrent_SlrModule8=?,InputPower_SlrModule8=?,OutputVoltage_SlrModule8=?,OutputCurrent_SlrModule8=?,OutputPower_SlrModule8=?,SolarModule8Status=?,InputVoltage_SlrModule9=?,InputCurrent_SlrModule9=?,InputPower_SlrModule9=?,OutputVoltage_SlrModule9=?,OutputCurrent_SlrModule9=?,OutputPower_SlrModule9=?,SolarModule9Status=?,InputVoltage_SlrModule10=?,InputCurrent_SlrModule10=?,InputPower_SlrModule10=?,OutputVoltage_SlrModule10=?,OutputCurrent_SlrModule10=?,OutputPower_SlrModule10=?,SolarModule10Status=?,InputVoltage_SlrModule11=?,InputCurrent_SlrModule11=?,InputPower_SlrModule11=?,OutputVoltage_SlrModule11=?,OutputCurrent_SlrModule11=?,OutputPower_SlrModule11=?,SolarModule11Status=?,InputVoltage_SlrModule12=?,InputCurrent_SlrModule12=?,InputPower_SlrModule12=?,OutputVoltage_SlrModule12=?,OutputCurrent_SlrModule12=?,OutputPower_SlrModule12=?,SolarModule12Status=?,No_of_Solar_Module=?,Solar_Input_Energy=?,Solar_Output_Energy=?,SolarRunHrs=?,SolarMDGRunHrs=?,SolarDGRunHrs=?,SolarBattRunHrs=?,PowerSource=?,SolarTotalnputPower=?,SolarTotaOutputPower=?,SysOutLoadStatus=?,MDGRunHrs=?,TeleRunHrs=?,TeleEnergy=?,CommunityLoad_R_Voltage=?,CommunityLoad_Y_Voltage=?,CommunityLoad_B_Voltage=?,CommunityLoad_R_Current=?,CommunityLoad_Y_Current=?,CommunityLoad_B_Current=?,CommunityLoad_R_PowerFactor=?,CommunityLoad_Y_PowerFactor=?,CommunityLoad_B_PowerFactor=?,CommunityLoad_R_Power=?,CommunityLoad_Y_Power=?,CommunityLoad_B_Power=?,CommunityLoad_Frequency=?,CommunityLoad_RunHrs=?,CommunityLoad_Energy=?,InverterInputVoltage_1=?,InverterInputCurrent_1=?,InverterOutVoltage_1=?,InverterOutputCurrent_1=?,InverterOutputEnergy_1=?,InverterTemp_1=?,Ineverter_Status_1=?,InverterInputVoltage_2=?,InverterInputCurrent_2=?,InverterOutVoltage_2=?,InverterOutputCurrent_2=?,InverterOutputEnergy_2=?,InverterTemp_2=?,Ineverter_Status_2=?,InverterInputVoltage_3=?,InverterInputCurrent_3=?,InverterOutVoltage_3=?,InverterOutputCurrent_3=?,InverterOutputEnergy_3=?,InverterTemp_3=?,Ineverter_Status_3=?,InverterInputVoltage_4=?,InverterInputCurrent_4=?,InverterOutVoltage_4=?,InverterOutputCurrent_4=?,InverterOutputEnergy_4=?,InverterTemp_4=?,Ineverter_Status_4=?,InverterInputVoltage_5=?,InverterInputCurrent_5=?,InverterOutVoltage_5=?,InverterOutputCurrent_5=?,InverterOutputEnergy_5=?,InverterTemp_5=?,Ineverter_Status_5=?,InverterInputVoltage_6=?,InverterInputCurrent_6=?,InverterOutVoltage_6=?,InverterOutputCurrent_6=?,InverterOutputEnergy_6=?,InverterTemp_6=?,Ineverter_Status_6=?,InverterInputVoltage_7=?,InverterInputCurrent_7=?,InverterOutVoltage_7=?,InverterOutputCurrent_7=?,InverterOutputEnergy_7=?,InverterTemp_7=?,Ineverter_Status_7=?,InverterInputVoltage_8=?,InverterInputCurrent_8=?,InverterOutVoltage_8=?,InverterOutputCurrent_8=?,InverterOutputEnergy_8=?,InverterTemp_8=?,Ineverter_Status_8=?,InverterInputVoltage_9=?,InverterInputCurrent_9=?,InverterOutVoltage_9=?,InverterOutputCurrent_9=?,InverterOutputEnergy_9=?,InverterTemp_9=?,Ineverter_Status_9=?,InverterInputVoltage_10=?,InverterInputCurrent_10=?,InverterOutVoltage_10=?,InverterOutputCurrent_10=?,InverterOutputEnergy_10=?,InverterTemp_10=?,Ineverter_Status_10=?,InverterInputVoltage_11=?,InverterInputCurrent_11=?,InverterOutVoltage_11=?,InverterOutputCurrent_11=?,InverterOutputEnergy_11=?,InverterTemp_11=?,Ineverter_Status_11=?,InverterInputVoltage_12=?,InverterInputCurrent_12=?,InverterOutVoltage_12=?,InverterOutputCurrent_12=?,InverterOutputEnergy_12=?,InverterTemp_12=?,Ineverter_Status_12=?,No_Of_Inverter_Module=?,InverterRunHrs=?,InverterEnergy=?,InverterInputPower=?,InverterOutputPower=?,ACTEL_R_Voltage=?,ACTEL_Y_Voltage=?,ACTEL_B_Voltage=?,ACTEL_R_Current=?,ACTEL_Y_Current=?,ACTEL_B_Current=?,ACTEL_R_PowerFactor=?,ACTEL_Y_PowerFactor=?,ACTEL_B_PowerFactor=?,ACTEL_R_Power=?,ACTEL_Y_Power=?,ACTEL_B_Power=?,ACTEL_Frequency=?,InputVoltage_SlrModule13=?,InputCurrent_SlrModule13=?,OutputVoltage_SlrModule13=?,OutputCurrent_SlrModule13=?,SolarModule13Status=?,InputVoltage_SlrModule14=?,InputCurrent_SlrModule14=?,OutputVoltage_SlrModule14=?,OutputCurrent_SlrModule14=?,SolarModule14Status=?,InputVoltage_SlrModule15=?,InputCurrent_SlrModule15=?,OutputVoltage_SlrModule15=?,OutputCurrent_SlrModule15=?,SolarModule15Status=?,InputVoltage_SlrModule16=?,InputCurrent_SlrModule16=?,OutputVoltage_SlrModule16=?,OutputCurrent_SlrModule16=?,SolarModule16Status=?,InputVoltage_SlrModule17=?,InputCurrent_SlrModule17=?,OutputVoltage_SlrModule17=?,OutputCurrent_SlrModule17=?,SolarModule17Status=?,InputVoltage_SlrModule18=?,InputCurrent_SlrModule18=?,OutputVoltage_SlrModule18=?,OutputCurrent_SlrModule18=?,SolarModule18Status=?,InputVoltage_SlrModule19=?,InputCurrent_SlrModule19=?,OutputVoltage_SlrModule19=?,OutputCurrent_SlrModule19=?,SolarModule19Status=?,InputVoltage_SlrModule20=?,InputCurrent_SlrModule20=?,OutputVoltage_SlrModule20=?,OutputCurrent_SlrModule20=?,SolarModule20Status=?,InputVoltage_SlrModule21=?,InputCurrent_SlrModule21=?,OutputVoltage_SlrModule21=?,OutputCurrent_SlrModule21=?,SolarModule21Status=?,InputVoltage_SlrModule22=?,InputCurrent_SlrModule22=?,OutputVoltage_SlrModule22=?,OutputCurrent_SlrModule22=?,SolarModule22Status=?,InputVoltage_SlrModule23=?,InputCurrent_SlrModule23=?,OutputVoltage_SlrModule23=?,OutputCurrent_SlrModule23=?,SolarModule23Status=?,InputVoltage_SlrModule24=?,InputCurrent_SlrModule24=?,OutputVoltage_SlrModule24=?,OutputCurrent_SlrModule24=?,SolarModule24Status=?,DBCreationTimestamp=?,Li_BattVoltage_1=? ,Li_BattCurrent_1=? ,Li_SOC_1 =? ,Li_SOH_1 =? ,Li_BattTemp_1 =? ,Li_BattStatus_1 =? ,Li_BattVoltage_2 =? ,Li_BattCurrent_2 =? ,Li_SOC_2 =? ,Li_SOH_2 =? ,Li_BattTemp_2 =? ,Li_BattStatus_2 =? ,Li_BattVoltage_3 =? ,Li_BattCurrent_3 =? ,Li_SOC_3 =? ,Li_SOH_3 =? ,Li_BattTemp_3 =? ,Li_BattStatus_3 =? ,Li_BattVoltage_4 =? ,Li_BattCurrent_4 =? ,Li_SOC_4 =? ,Li_SOH_4 =? ,Li_BattTemp_4 =? ,Li_BattStatus_4 =? ,Li_BattVoltage_5 =? ,Li_BattCurrent_5 =? ,Li_SOC_5 =? ,Li_SOH_5 =? ,Li_BattTemp_5 =? ,Li_BattStatus_5 =? ,Li_BattVoltage_6 =? ,Li_BattCurrent_6 =? ,Li_SOC_6 =? ,Li_SOH_6  =? ,Li_BattTemp_6 =? ,Li_BattStatus_6=? ,Li_BattVoltage_7 =? ,Li_BattCurrent_7 =? ,Li_SOC_7=? ,Li_SOH_7 =? ,Li_BattTemp_7 =? ,Li_BattStatus_7=? ,Li_BattVoltage_8 =? ,Li_BattCurrent_8 =? ,Li_SOC_8 =? ,Li_SOH_8 =? ,Li_BattTemp_8 =? ,Li_BattStatus_8=? ,Li_BattVoltage_9 =? ,Li_BattCurrent_9 =? ,Li_SOC_9=? ,Li_SOH_9=? ,Li_BattTemp_9 =? ,Li_BattStatus_9=? ,Li_BattVoltage_10 =? ,Li_BattCurrent_10 =? ,Li_SOC_10=? ,Li_SOH_10=? ,Li_BattTemp_10 =? ,Li_BattStatus_10=? ,Li_BattVoltage_11 =? ,Li_BattCurrent_11 =? ,Li_SOC_11=? ,Li_SOH_11 =? ,Li_BattTemp_11 =? ,Li_BattStatus_11=? ,Li_BattVoltage_12 =? ,Li_BattCurrent_12 =? ,Li_SOC_12=? ,Li_SOH_12=? ,Li_BattTemp_12 =? ,Li_BattStatus_12=? ,Li_BattVoltage_13 =? ,Li_BattCurrent_13 =? ,Li_SOC_13 =? ,Li_SOH_13 =? ,Li_BattTemp_13 =? ,Li_BattStatus_13 =? ,Li_BattVoltage_14 =? ,Li_BattCurrent_14 =? ,Li_SOC_14=? ,Li_SOH_14 =? ,Li_BattTemp_14 =? ,Li_BattStatus_14=? ,Li_BattVoltage_15 =? ,Li_BattCurrent_15 =? ,Li_SOC_15=? ,Li_SOH_15=? ,Li_BattTemp_15 =? ,Li_BattStatus_15=? ,Li_BattVoltage_16 =? ,Li_BattCurrent_16 =? ,Li_SOC_16=? ,Li_SOH_16=? ,Li_BattTemp_16 =? ,Li_BattStatus_16=? ,Li_BattVoltage_17 =? ,Li_BattCurrent_17 =? ,Li_SOC_17=? ,Li_SOH_17 =? ,Li_BattTemp_17 =? ,Li_BattStatus_17 =? ,Li_BattVoltage_18 =? ,Li_BattCurrent_18 =? ,Li_SOC_18 =? ,Li_SOH_18 =? ,Li_BattTemp_18 =? ,Li_BattStatus_18 =? ,Li_BattVoltage_19 =? ,Li_BattCurrent_19 =? ,Li_SOC_19=? ,Li_SOH_19=? ,Li_BattTemp_19 =? ,Li_BattStatus_19 =? ,Li_BattVoltage_20 =? ,Li_BattCurrent_20 =? ,Li_SOC_20=? ,Li_SOH_20=? ,Li_BattTemp_20 =? ,Li_BattStatus_20=? where smSiteID=? ;");
 
@@ -1877,18 +1855,13 @@ public class ParseRecordThread {
 						pstmtObj.setFloat(464,liSoh20);
 						pstmtObj.setFloat(465,liBattTemp20);
 						pstmtObj.setString(466,liBattStatus20);
-
 						pstmtObj.setInt(467,smSiteId);
-
-						System.out.println("update query:-------------"+pstmtObj);
-
 						pstmtObj.executeUpdate();
+						logger.info("Data Updated into trans_latestdata for site: "+siteCode);
 					}
 				}
 
-				System.out.println("Inserting to trans_recordsdata");
 				pstmtObj.close();
-
 				pstmtObj = connObj.prepareStatement("insert into trans_recordsdata(smSiteID,rcdTimestamp,"
 						+ "Batt_3_temp,Batt_4_temp,Batt_1_temp,Batt_2_temp,Fuellevel_Percentage,Fuellevel_Ltrs,Sitebattvolt,"
 						+ "MDG_R_Volt,MDG_Y_Volt,MDG_B_Volt,MDG_R_Amp,MDG_Y_Amp,MDG_B_Amp,MDG_R_PowerFactor,MDG_Y_PowerFactor,"
@@ -2450,10 +2423,10 @@ public class ParseRecordThread {
 				pstmtObj.setFloat(466,liSoh20);
 				pstmtObj.setFloat(467,liBattTemp20);
 				pstmtObj.setString(468,liBattStatus20);
-
 				pstmtObj.setDate(469, hpDate);
 
 				pstmtObj.executeUpdate();
+				logger.info("Data Inserted into trans_recordsdata for site: "+siteCode);
 
 				pstmtObj = connObj.prepareStatement("insert into trans_rawdata(smSiteID,rcdTimestamp,"
 						+ "Batt_3_temp,Batt_4_temp,Batt_1_temp,Batt_2_temp,Fuellevel_Percentage,Fuellevel_Ltrs,Sitebattvolt,"
@@ -3020,16 +2993,10 @@ public class ParseRecordThread {
 				pstmtObj.setFloat(470,liSoh20);
 				pstmtObj.setFloat(471,liBattTemp20);
 				pstmtObj.setString(472,liBattStatus20);
-
 				pstmtObj.setDate(473, hpDate);
 				pstmtObj.executeUpdate();
-
+				logger.info("Data Inserted into trans_rawdata for site: "+siteCode);
 				pstmtObj.close();
-
-				System.out.println("Data Inserted to trans_recordsdata:" );
-				System.out.println("\n=====Releasing Connection Object To Pool=====\n"); 
-
-				//				connObj.close();
 
 			} catch(Exception sqlException) {
 				sqlException.printStackTrace();
@@ -3046,13 +3013,14 @@ public class ParseRecordThread {
 						connObj=null;
 					}
 				} catch(Exception sqlException) {
+					logger.error ("Failed to process alarm", sqlException+ " for site: ",siteCode);
 					sqlException.printStackTrace();
 				}
 			}
 			jdbcObj.printDbStatus();
 
-			AlarmProcessing alarmProcessing = new AlarmProcessing();
-			alarmProcessing.processAlarm(alarmString,siteId,_recordtime,statusString,commStatus,smSiteId,sysOutLoadStatus,
+			AlarmProcessor alarmProcessing = new AlarmProcessor();
+			alarmProcessing.processAlarm(alarmString,smSiteCode,_recordtime,statusString,commStatus,smSiteId,sysOutLoadStatus,
 					solarStatusMod1,solarStatusMod2,solarStatusMod3,solarStatusMod4,solarStatusMod5,solarStatusMod6,solarStatusMod7,
 					solarStatusMod8,solarStatusMod9,solarStatusMod10,solarStatusMod11,solarStatusMod12,solarStatusMod13,solarStatusMod14,
 					solarStatusMod15,solarStatusMod16,solarStatusMod17,solarStatusMod18,solarStatusMod19,solarStatusMod20,solarStatusMod21,
