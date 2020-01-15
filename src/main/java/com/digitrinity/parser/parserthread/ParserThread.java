@@ -25,6 +25,7 @@ import com.digitrinity.parser.dbutil.DataBaseOperation;
 
 public class ParserThread implements Runnable {
 
+	static volatile boolean exit = false; 
 	private static boolean _deviceFlag = false;
 	@SuppressWarnings("rawtypes")
 	private HashMap _deviceMap=new HashMap();
@@ -34,7 +35,9 @@ public class ParserThread implements Runnable {
 
 	public void run(){
 
-		while(true) {
+		//while(true) {
+		// will not run infinitely 
+                  while (!exit) { 
 
 			logger.debug("Started Processing Data...");
 
@@ -81,6 +84,8 @@ public class ParserThread implements Runnable {
 				e.printStackTrace();
 			}
 		}
+		// so that we can stop the threads 
+                exit = true; 
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
