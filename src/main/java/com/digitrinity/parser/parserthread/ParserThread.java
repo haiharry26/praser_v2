@@ -34,7 +34,9 @@ public class ParserThread implements Runnable {
 
 	public void run(){
 
-		while(true) {
+		//while(true) {
+		// will not run infinitely 
+                  while (!exit) { 
 
 			logger.debug("Started Processing Data...");
 
@@ -81,6 +83,8 @@ public class ParserThread implements Runnable {
 				e.printStackTrace();
 			}
 		}
+		// so that we can stop the threads 
+                exit = true; 
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
